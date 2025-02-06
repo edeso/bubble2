@@ -9,6 +9,10 @@ import android.widget.TextView;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.OnApplyWindowInsetsListener;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.graphics.Insets;
 import androidx.fragment.app.Fragment;
 import com.nkanaev.comics.BuildConfig;
 import com.nkanaev.comics.R;
@@ -46,8 +50,9 @@ public class ReaderActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_reader);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_reader);
-        setSupportActionBar(toolbar);
+        initToolBar();
+        initBottomNavigation();
+        initActionBar();
 
         if (savedInstanceState == null) {
             if (Intent.ACTION_VIEW.equals(getIntent().getAction())) {
@@ -66,14 +71,45 @@ public class ReaderActivity extends AppCompatActivity {
                 setFragment(fragment);
             }
         }
+    }
 
+    private void initToolBar() {
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_reader);
+        setSupportActionBar(toolbar);
+
+        ViewCompat.setOnApplyWindowInsetsListener(toolbar, new OnApplyWindowInsetsListener() {
+            public WindowInsetsCompat onApplyWindowInsets(View v, WindowInsetsCompat insets) {
+                Insets systemBarInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                v.setPadding(0, systemBarInsets.top, 0, 0);
+
+                return WindowInsetsCompat.CONSUMED;
+            }
+        });
+    }
+
+    private void initBottomNavigation() {
+        View navWrapper = findViewById(R.id.reader_bottom_nav_wrapper);
+
+        ViewCompat.setOnApplyWindowInsetsListener(navWrapper, new OnApplyWindowInsetsListener() {
+            public WindowInsetsCompat onApplyWindowInsets(View v, WindowInsetsCompat insets) {
+                Insets systemBarInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                v.setPadding(0, 0, 0, systemBarInsets.bottom);
+
+                return WindowInsetsCompat.CONSUMED;
+            }
+        });
+    }
+
+    private void initActionBar() {
         ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setDisplayShowCustomEnabled(true);
-            actionBar.setCustomView(R.layout.action_bar_title_layout);
-            actionBar.setTitle("");
+        if (actionBar == null) {
+            return;
         }
+
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setDisplayShowCustomEnabled(true);
+        actionBar.setCustomView(R.layout.action_bar_title_layout);
+        actionBar.setTitle("");
     }
 
     @Override

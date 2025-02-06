@@ -50,6 +50,7 @@
     <string name="menu_library">Library</string>
     <string name="menu_browser">Browser</string>
     <string name="menu_about">About</string>
+    <string name="menu_preferences">Preferences</string>
 
     <string name="library_header_recent">Recent</string>
     <string name="library_header_all">All</string>
@@ -79,4 +80,14 @@
 
     <string name="library_empty">Your collection seems empty. Click \"folder\" icon to select library directory.</string>
     <string name="warning_missing_file">Missing file. Please update the library</string>
+
+    <string name="preferences_reader_nav_overlay_activation_type">Reader navigation overlay activation type</string>
+    <string name="preferences_reader_nav_overlay_activation_type_key">reader_nav_overlay_activation_type</string>
+    <string name="preferences_reader_nav_overlay_activation_type_single_tap">Single tap</string>
+    <string name="preferences_reader_nav_overlay_activation_type_single_tap_confirmed">Single tap allowing double tap to zoom(slower)</string>
+    <string name="preferences_reader_nav_overlay_activation_type_long_press">Long tap</string>
+
+    <string name="preferences_reader_nav_activation_threshold">Left/Right tap area to turn page</string>
+    <string name="preferences_reader_nav_activation_threshold_key">preferences_reader_nav_activation_threshold_key</string>
+    <string name="preferences_reader_nav_activation_threshold_summary">10\% ~ 30\%</string>
 </resources>

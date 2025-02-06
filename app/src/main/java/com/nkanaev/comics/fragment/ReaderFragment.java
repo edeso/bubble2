@@ -34,6 +34,7 @@ import androidx.fragment.app.Fragment;
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
+import androidx.preference.PreferenceManager;
 import com.nkanaev.comics.BuildConfig;
 import com.nkanaev.comics.Constants;
 import com.nkanaev.comics.MainApplication;
@@ -58,6 +59,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
+import java.lang.IllegalStateException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
@@ -75,7 +77,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
     public static final String STATE_PAGE_ROTATIONS = "STATE_PAGE_ROTATIONS";
 
     private ComicViewPager mViewPager;
-    private View mPageNavLayout;
+    private View mNavigationOverlay;
     private SeekBar mPageSeekBar;
     private TextView mPageNavTextView;
     private TextView mPageInfoTextView;
@@ -250,7 +252,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
                 .addRequestHandler(mComicHandler)
                 .build();
 
-        mGestureDetector = new GestureDetector(getActivity(), new MyTouchListener());
+        initGestureDetector();
 
         SharedPreferences preferences = MainApplication.getPreferences();
         int viewModeInt = preferences.getInt(
@@ -265,10 +267,10 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_reader, container, false);
-        mPageNavLayout = getActivity().findViewById(R.id.pageNavLayout);
+        mNavigationOverlay = getActivity().findViewById(R.id.navigation_overlay);
 
         // setup seekbar
-        mPageSeekBar = (SeekBar) mPageNavLayout.findViewById(R.id.pageSeekBar);
+        mPageSeekBar = (SeekBar) mNavigationOverlay.findViewById(R.id.pageSeekBar);
         mPageSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -292,12 +294,12 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
         });
         updateSeekBar();
 
-        mPageNavTextView = (TextView) mPageNavLayout.findViewById(R.id.pageNavTextView);
+        mPageNavTextView = (TextView) mNavigationOverlay.findViewById(R.id.pageNavTextView);
         mPageNavTextView.setText(""); // strip dummy text
 
         // setup page info button
-        mPageInfoButton = mPageNavLayout.findViewById(R.id.pageInfoButton);
-        mPageInfoTextView = mPageNavLayout.findViewById(R.id.pageInfoTextView);
+        mPageInfoButton = mNavigationOverlay.findViewById(R.id.pageInfoButton);
+        mPageInfoTextView = mNavigationOverlay.findViewById(R.id.pageInfoTextView);
         mPageInfoTextView.setText(""); // strip dummy text
         setPageInfoShown(mIsPageInfoShown);
         View.OnClickListener ocl = new View.OnClickListener() {
@@ -840,83 +842,132 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
         }
     }
 
-    private class MyTouchListener extends GestureDetector.SimpleOnGestureListener {
-        /**
-         * switch menus and pageseekbar on/off on long press anywhere
-         *
-         * @param e The initial on down motion event that started the longpress.
-         */
-        @Override
-        public void onLongPress(MotionEvent e) {
-            // always switch of menus first
-            if (!isFullscreen()) {
-                setFullscreen(true);
-                return;
-            }
+    private class NavigationOverlayTouchListener extends GestureDetector.SimpleOnGestureListener {
+        private final float THRESHOLD_MAX = (float) 0.3;
+        private final float THRESHOLD_MIN = (float) 0.1;
 
-            float x = e.getX();
-            float y = e.getY();
-            float width = (float) mViewPager.getWidth();
-            float height = (float) mViewPager.getHeight();
+        protected float mActivationThreshold;
 
-            // hotspot only 60% centered
-            int div = 10;
-            if (x < width / div * 2 || x > width / div * 8
-                    || y < height / div * 2 || y > height / div * 8)
-                return;
+        public NavigationOverlayTouchListener() {
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+            int numerator = preferences.getInt(
+                getString(R.string.preferences_reader_nav_activation_threshold_key),
+                0);
 
-            boolean fullScreen = !isFullscreen();
-            setFullscreen(fullScreen);
+            float diff = THRESHOLD_MAX - THRESHOLD_MIN;
+            float percentage = numerator / (float) 100.0;
+            mActivationThreshold = THRESHOLD_MIN + (diff * percentage);
         }
 
-        /**
-         * single taps on left/ride side switch to prev/next page
-         *
-         * @param e The down motion event of the single-tap.
-         * @return boolean true if the event is consumed, else false
-         */
+        protected boolean handleEvent(MotionEvent e) {
+            float x = e.getX();
+            float width = (float) mViewPager.getWidth();
+
+            boolean isLeftTouch = isLeftTouch(x, width, mActivationThreshold);
+            boolean isRightTouch = isRightTouch(x, width, mActivationThreshold);
+
+            if (isLeftTouch || isRightTouch) {
+                handlePageTurning(isLeftTouch);
+                return true;
+            } else {
+                if (!isFullscreen()) {
+                    setFullscreen(true);
+                    return true;
+                } else {
+                    setFullscreen(false);
+                    return false;
+                }
+            }
+        }
+
+        protected void handlePageTurning(boolean isLeftTouch) {
+            if (isLeftTouch) {
+                if (mIsLeftToRight) {
+                    goToPreviousPage();
+                } else {
+                    goToNextPage();
+                }
+            } else {
+                if (mIsLeftToRight) {
+                    goToNextPage();
+                } else {
+                    goToPreviousPage();
+                }
+            }
+        }
+
+        protected void goToPreviousPage() {
+            if (getCurrentPage() == 1) {
+                hitBeginning();
+            } else {
+                setCurrentPage(getCurrentPage() - 1);
+            }
+        }
+
+        protected void goToNextPage() {
+            if (getCurrentPage() == mPageCount) {
+                hitEnding();
+            } else {
+                setCurrentPage(getCurrentPage() + 1);
+            }
+        }
+
+        protected boolean isInnerTouch(float point, float length, float percentage) {
+            return !isOuterTouch(point, length, percentage);
+        }
+
+        protected boolean isOuterTouch(float point, float length, float percentage) {
+            return isLeftTouch(point, length, percentage) || isRightTouch(point, length, percentage);
+        }
+
+        protected boolean isLeftTouch(float point, float length, float percentage) {
+            return point < length * percentage;
+        }
+
+        protected boolean isRightTouch(float point, float length, float percentage) {
+            return point > length * (1 - percentage);
+        }
+    }
+
+    private class SingleTapUpNavigationOverlayTouchListener extends NavigationOverlayTouchListener {
+        @Override
+        public boolean onSingleTapUp(MotionEvent e) {
+            return handleEvent(e);
+        }
+    }
+
+    private class SingleTapConfirmNavigationOverlayTouchListener extends NavigationOverlayTouchListener {
+        @Override
+        public boolean onSingleTapConfirmed(MotionEvent e) {
+            return handleEvent(e);
+        }
+    }
+
+    private class LongPressNavigationOverlayTouchListener extends NavigationOverlayTouchListener {
+        @Override
+        public void onLongPress(MotionEvent e) {
+            handleEvent(e);
+        }
+
         @Override
         public boolean onSingleTapConfirmed(MotionEvent e) {
             float x = e.getX();
+            float width = (float) mViewPager.getWidth();
 
-            // tap left side
-            if (x < (float) mViewPager.getWidth() / 10 * 3) {
-                if (mIsLeftToRight) {
-                    if (getCurrentPage() == 1)
-                        hitBeginning();
-                    else
-                        setCurrentPage(getCurrentPage() - 1);
+            boolean isLeftTouch = isLeftTouch(x, width, mActivationThreshold);
+            boolean isRightTouch = isRightTouch(x, width, mActivationThreshold);
+
+            if (isLeftTouch || isRightTouch) {
+                handlePageTurning(isLeftTouch);
+                return true;
+            } else {
+                if (!isFullscreen()) {
+                    setFullscreen(true);
+                    return true;
                 } else {
-                    if (getCurrentPage() == mPageCount)
-                        hitEnding();
-                    else
-                        setCurrentPage(getCurrentPage() + 1);
+                    return false;
                 }
-                return true;
             }
-            // tap right side
-            else if (x > (float) mViewPager.getWidth() / 10 * 7) {
-                if (mIsLeftToRight) {
-                    if (getCurrentPage() == mPageCount)
-                        hitEnding();
-                    else
-                        setCurrentPage(getCurrentPage() + 1);
-                } else {
-                    if (getCurrentPage() == 1)
-                        hitBeginning();
-                    else
-                        setCurrentPage(getCurrentPage() - 1);
-                }
-                return true;
-            }
-
-            // switch of menus if not navigating
-            if (!isFullscreen()) {
-                setFullscreen(true);
-                return true;
-            }
-
-            return false;
         }
     }
 
@@ -966,9 +1017,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
 
         if (fullscreen) {
             if (actionBar != null) actionBar.hide();
-            mPageNavLayout.setVisibility(View.INVISIBLE);
-
-//            wic.hide(WindowInsetsCompat.Type.systemBars());
+            mNavigationOverlay.setVisibility(View.INVISIBLE);
 
             int flag = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                     | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
@@ -980,20 +1029,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
             }
             decorView.setSystemUiVisibility(flag);
 
-            // replaced by value in ReaderTheme style
-            /*
-            // allow full screen over display cutouts/holes (since Android 9)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                Window w = getActivity().getWindow();
-                WindowManager.LayoutParams layoutParams = w.getAttributes();
-                layoutParams.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
-                w.setAttributes(layoutParams);
-            }
-            */
-
         } else {
-//            wic.show(WindowInsetsCompat.Type.systemBars());
-
             int flag = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                     | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
             if (Utils.isKitKatOrLater()) {
@@ -1004,7 +1040,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
 
             mPageSeekBar.setMax(mPageCount - 1);
             if (actionBar != null) actionBar.show();
-            mPageNavLayout.setVisibility(View.VISIBLE);
+            mNavigationOverlay.setVisibility(View.VISIBLE);
 
             // WORKAROUND:
             // status bar & navigation bar background won't show, being transparent,
@@ -1163,6 +1199,30 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
             Utils.close(fOut);
             //Utils.close(bitmap);
         }
+    }
+
+    private void initGestureDetector() {
+        final String prefKeySingleTap = getString(R.string.preferences_reader_nav_overlay_activation_type_single_tap);
+        final String prefKeySingleTapConfirmed = getString(R.string.preferences_reader_nav_overlay_activation_type_single_tap_confirmed);
+        final String prefKeyLongPress = getString(R.string.preferences_reader_nav_overlay_activation_type_long_press);
+
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        String activationType = preferences.getString(
+                getString(R.string.preferences_reader_nav_overlay_activation_type_key),
+                getString(R.string.preferences_reader_nav_overlay_activation_type_long_press));
+
+        GestureDetector.SimpleOnGestureListener listener;
+        if (activationType.equals(prefKeySingleTap)) {
+            listener = new SingleTapUpNavigationOverlayTouchListener();
+        } else if (activationType.equals(prefKeySingleTapConfirmed)) {
+            listener = new SingleTapConfirmNavigationOverlayTouchListener();
+        } else if (activationType.equals(prefKeyLongPress)) {
+            listener = new LongPressNavigationOverlayTouchListener();
+        } else {
+            throw new IllegalStateException(String.format("Unknown activationType %s", activationType));
+        }
+
+        mGestureDetector = new GestureDetector(getActivity(), listener);
     }
 
     @Override

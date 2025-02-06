@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="reader_nav_overlay_activation_types">
+        <item>@string/preferences_reader_nav_overlay_activation_type_long_press</item>
+        <item>@string/preferences_reader_nav_overlay_activation_type_single_tap</item>
+        <item>@string/preferences_reader_nav_overlay_activation_type_single_tap_confirmed</item>
+    </array>
+</resources>

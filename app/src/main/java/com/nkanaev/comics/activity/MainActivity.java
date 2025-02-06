@@ -19,6 +19,7 @@ import com.nkanaev.comics.R;
 import com.nkanaev.comics.fragment.AboutFragment;
 import com.nkanaev.comics.fragment.BrowserFragment;
 import com.nkanaev.comics.fragment.LibraryFragment;
+import com.nkanaev.comics.fragment.PreferencesFragment;
 import com.nkanaev.comics.managers.LocalCoverHandler;
 import com.nkanaev.comics.managers.Scanner;
 import com.nkanaev.comics.managers.Utils;
@@ -203,6 +204,9 @@ public class MainActivity extends AppCompatActivity
                         break;
                     case R.id.drawer_menu_about:
                         setFragment(new AboutFragment());
+                        break;
+                    case R.id.drawer_menu_preferences:
+                        setFragment(new PreferencesFragment());
                         break;
                 }
 

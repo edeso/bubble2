@@ -26,6 +26,8 @@
     <color name="about_trans_bg">@color/grey50</color>
     <color name="about_trans_row_bg">@color/white_trans75</color>
 
+    <color name="reader_nav_bg">@color/darkest_trans50</color>
+
     <color name="primaryDark13">#c84a59</color>
     <color name="primaryDark25">#b44350</color>
     <color name="primaryDark37">#9e3b46</color>

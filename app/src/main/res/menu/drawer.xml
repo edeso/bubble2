@@ -12,5 +12,8 @@
         <item android:id="@+id/drawer_menu_about"
               android:icon="@drawable/ic_info_24"
               android:title="@string/menu_about"/>
+        <item android:id="@+id/drawer_menu_preferences"
+              android:icon="@drawable/ic_cogwheel_24"
+              android:title="@string/menu_preferences"/>
     </group>
 </menu>
