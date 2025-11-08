@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_description">Leitor de quadrinhos para Android</string>
+
+    <string name="about_version">Versão</string>
+    <string name="about_libraries">Esta aplicação integra as seguintes bibliotecas sob as licenças mencionadas. Não existiria sem elas!</string>
+    <string name="about_thanks">Obrigado!</string>
+
+    <string name="action_settings">Configurações</string>
+
+    <string name="action_view_rotate">Rotacionar</string>
+
+    <string name="action_view_export">Exportar página</string>
+
+    <string name="action_view_mode">Modo de visualização</string>
+    <string name="action_view_mode_aspect_fill">Preenchimento de aspecto</string>
+    <string name="action_view_mode_aspect_fit">Ajuste de aspecto</string>
+    <string name="action_view_mode_fit_width">Ajuste de largura</string>
+
+    <string name="action_reading_mode">Modo de leitura</string>
+    <string name="action_reading_mode_left_to_right">Quadrinho</string>
+    <string name="action_reading_mode_right_to_left">Mangá</string>
+
+    <string name="menu_browser_filter">Filtrar</string>
+    <string name="menu_browser_filter_all">Todos</string>
+    <string name="menu_browser_filter_read">Lido</string>
+    <string name="menu_browser_filter_reading">Lendo</string>
+    <string name="menu_browser_filter_unread">Não lido</string>
+    <string name="menu_browser_filter_unfinished">Incompleto</string>
+
+    <string name="menu_browser_context_reset">Redefinir</string>
+
+    <string name="menu_sort_by">Ordenar por</string>
+    <string name="menu_browser_sort_name">Nome</string>
+    <string name="menu_browser_sort_access">Último acesso</string>
+    <string name="menu_sort_creation">Horário adicionado</string>
+    <string name="menu_sort_modified">Horário modificado</string>
+    <string name="menu_browser_sort_size">Tamanho</string>
+    <string name="menu_browser_sort_pages_total">Total de páginas</string>
+    <string name="menu_browser_sort_pages_read">Páginas lidas</string>
+    <string name="menu_browser_sort_pages_left">Páginas restantes</string>
+
+    <string name="drawer_open">Abrir painel de navegação</string>
+    <string name="drawer_close">Fechar painel de navegação</string>
+
+    <string name="menu_library">Biblioteca</string>
+    <string name="menu_browser">Navegador</string>
+    <string name="menu_about">Sobre</string>
+
+    <string name="library_header_recent">Recente</string>
+    <string name="library_header_all">Todos</string>
+
+    <string name="directory_picker_header">Selecionar diretório da biblioteca</string>
+    <string name="directory_picker_confirm">Selecionar</string>
+    <string name="directory_picker_cancel">Cancelar</string>
+
+    <string name="search">Pesquisar</string>
+
+    <string name="browser_search_hint">Por favor, insira um termo de pesquisa</string>
+
+    <string name="reload">Atualizar biblioteca</string>
+    <string name="reload_msg_fast">Atualização rápida da biblioteca</string>
+    <string name="reload_msg_slow">Recarregar todos os arquivos da biblioteca</string>
+
+    <string name="theme">Tema</string>
+    <string name="theme_auto">Automático</string>
+    <string name="theme_day">Dia</string>
+    <string name="theme_night">Noite</string>
+
+    <string name="alert_action_positive">Sim</string>
+    <string name="alert_action_negative">Não</string>
+    <string name="alert_action_neutral">Ok</string>
+    <string name="switch_next_comic">Você gostaria de mudar para o próximo quadrinho?</string>
+    <string name="switch_prev_comic">Você gostaria de mudar para o quadrinho anterior?</string>
+
+    <string name="library_empty">Sua coleção parece vazia. Clique no ícone \"pasta\" para selecionar o diretório da biblioteca.</string>
+    <string name="warning_missing_file">Arquivo ausente. Por favor, atualize a biblioteca</string>
+</resources>
