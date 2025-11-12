@@ -5,6 +5,7 @@ import android.content.*;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -1196,7 +1197,6 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
                 (mFile.isDirectory() ? mFile.getName() : Utils.removeExtensionIfAny(mFile.getName())) +
                         ".page" + pageNum + ".jpg");
 
-        Bitmap bitmap = null;
         InputStream is = null;
         OutputStream os = null;
         try {
@@ -1273,15 +1273,28 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
                 // if for some reason mediastore does return null, fallback to direct write
                 if (imageUri!=null)
                     os = getContext().getContentResolver().openOutputStream(imageUri);
-                    // default for Android9-
+                // default for Android9-
                 else
                     os = new FileOutputStream(file);
 
-                MyTarget t = mTargets.get(index);
-                View v = t.mLayout.get();
-                PageImageView piv = v.findViewById(R.id.pageImageView);
-                bitmap = ((BitmapDrawable) piv.getDrawable()).getBitmap();
+                Bitmap bitmap;
+                boolean recycle = false;
+                try {
+                    MyTarget t = mTargets.get(index);
+                    View v = t.mLayout.get();
+                    PageImageView piv = v.findViewById(R.id.pageImageView);
+                    bitmap = ((BitmapDrawable) piv.getDrawable()).getBitmap();
+                } catch (Throwable t) {
+                    Log.e("ReaderFragment", "reuse bitmap failed", t);
+                    // reusing pageimageview's bitmap failed, let's load it from parser
+                    is = mParser.getPage(index);
+                    bitmap = BitmapFactory.decodeStream(is);
+                    recycle = true;
+                }
+
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 95, os);
+                if (recycle)
+                    Utils.close(bitmap);
             }
             File shortFile = new File(folder.getName(), file.getName());
             Utils.toast("Exported as '" + shortFile.toString() + "'", getContext());
