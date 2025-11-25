@@ -131,17 +131,18 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.4.0'
     // fragment v1.7+ API19
     implementation 'androidx.fragment:fragment:1.8.9'
+    // activity v1.12+ API23
     implementation 'androidx.activity:activity:1.11.0'
     // material v1.12+ API19
     implementation 'com.google.android.material:material:1.13.0'
     // constraintlayout 2.2.0+ needs API21
     implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
-    implementation 'com.github.junrar:junrar:7.5.5'
+    implementation 'com.github.junrar:junrar:7.5.7'
     //noinspection NewerVersionAvailable
     implementation 'com.squareup.picasso:picasso:2.8'
     implementation 'org.apache.commons:commons-compress:1.28.0'
     implementation 'org.apache.commons:commons-imaging:1.0.0-alpha6'
-    implementation 'org.tukaani:xz:1.10'
+    implementation 'org.tukaani:xz:1.11'
 
     // 7-Zip-JBinding-4Android 16.02-2.03+ API21
     //implementation 'com.github.omicronapps:7-Zip-JBinding-4Android:Release-16.02-2.02'
@@ -149,7 +150,7 @@ dependencies {
     //implementation 'com.sorrowblue.sevenzipjbinding:7-Zip-JBinding-4Android:16.02-2.03'
     //implementation 'com.github.edeso:7-Zip-JBinding-4Android:master-SNAPSHOT'
 
-    implementation 'com.github.luben:zstd-jni:1.5.7-5@aar'
+    implementation 'com.github.luben:zstd-jni:1.5.7-6@aar'
     implementation 'org.brotli:dec:0.1.2'
     // jp2-android 1.0.4+ API21, gemalto aar vanished from jcenter
     //implementation 'com.gemalto.jp2:jp2-android:1.0.3'
