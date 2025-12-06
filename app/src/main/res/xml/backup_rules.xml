@@ -1,0 +1,10 @@
+<full-backup-content>
+    <include domain="sharedpref" path="." />
+    <include domain="database" path="." />
+    <include domain="file" path="." />
+    <exclude domain="file" path="cache/"/>
+    <exclude domain="file" path="temp/"/>
+    <include domain="external" path="." />
+    <exclude domain="external" path="cache/"/>
+    <exclude domain="external" path="temp/"/>
+</full-backup-content>

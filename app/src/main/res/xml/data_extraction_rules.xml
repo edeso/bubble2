@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup>
+        <!-- backup user preferences and settings -->
+        <include domain="sharedpref" path="."/>
+        <!-- backup database -->
+        <include domain="database" path="."/>
+        <!-- backup files but excluding cache -->
+        <include domain="file" path="."/>
+        <exclude domain="file" path="cache/"/>
+        <exclude domain="file" path="temp/"/>
+        <!-- backup <storage>/Android/data excluding cache -->
+        <include domain="external" path="."/>
+        <exclude domain="file" path="cache/"/>
+        <exclude domain="file" path="temp/"/>
+    </cloud-backup>
+
+    <device-transfer>
+        <!-- transfer user data -->
+        <include domain="sharedpref" path="."/>
+        <include domain="database" path="."/>
+        <include domain="file" path="."/>
+        <include domain="external" path="."/>
+    </device-transfer>
+</data-extraction-rules>
