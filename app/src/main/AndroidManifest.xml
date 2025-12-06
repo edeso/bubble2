@@ -27,7 +27,7 @@
         <activity android:name=".activity.ReaderActivity"
                   android:parentActivityName=".activity.MainActivity"
                   android:theme="@style/ReaderTheme"
-                  android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
+                  android:configChanges="colorMode|keyboard|keyboardHidden|mcc|mnc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|touchscreen|uiMode"
                   android:exported="true">
 
             <meta-data android:name="android.support.PARENT_ACTIVITY"
