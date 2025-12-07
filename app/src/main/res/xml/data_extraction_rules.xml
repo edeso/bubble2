@@ -9,7 +9,7 @@
         <include domain="root"/>
         <exclude domain="root" path="cache/"/>
         <include domain="external"/>
-        <exclude domain="file" path="cache/"/>
+        <exclude domain="external" path="cache/"/>
     </cloud-backup>
     <device-transfer>
         <!-- transfer app data -->
