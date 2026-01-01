@@ -1,21 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
+    <!-- ne PAS traduire app_name ;) -->
+    <string name="app_name" translatable="false">Bubble2</string>
     <string name="app_description">Lecteur de BDs pour Android</string>
+    <string name="app_link" translatable="false">https://github.com/edeso/bubble2</string>
+    <string name="app_license" translatable="false">GPL-3.0</string>
+
+    <string name="about_version">Version</string>
+    <string name="about_libraries">Cette application intègre les bibliothèques suivantes, sous les licences indiquées. Elle n’existerait pas sans elles !</string>
+    <string name="about_thanks">Merci !</string>
 
     <string name="action_settings">Paramètres</string>
+
+    <string name="action_view_rotate">Pivoter</string>
+
+    <string name="action_view_export">Exporter la page</string>
 
     <string name="action_view_mode">Vue</string>
     <string name="action_view_mode_aspect_fill">Remplissage</string>
     <string name="action_view_mode_aspect_fit">Adaptée</string>
     <string name="action_view_mode_fit_width">Largeur adaptée</string>
 
-    <string name="menu_browser_filter">Filtre</string>
+    <string name="action_reading_mode">Mode de lecture</string>
+    <string name="action_reading_mode_left_to_right">BD</string>
+    <string name="action_reading_mode_right_to_left">Manga</string>
+
+    <string name="menu_browser_filter">Filtrer</string>
     <string name="menu_browser_filter_all">Tout</string>
     <string name="menu_browser_filter_read">Lu</string>
-    <string name="menu_browser_filter_reading">En lecture</string>
+    <string name="menu_browser_filter_reading">En cours</string>
     <string name="menu_browser_filter_unread">Non lu</string>
     <string name="menu_browser_filter_unfinished">Inachevé</string>
+
+    <string name="menu_browser_context_reset">Réinitialiser</string>
+
+    <string name="menu_sort_by">Trier par</string>
+    <string name="menu_browser_sort_name">Nom</string>
+    <string name="menu_browser_sort_access">Dernier accès</string>
+    <string name="menu_sort_creation">Date d’ajout</string>
+    <string name="menu_sort_modified">Date de modification</string>
+    <string name="menu_browser_sort_size">Taille</string>
+    <string name="menu_browser_sort_pages_total">Nombre de pages</string>
+    <string name="menu_browser_sort_pages_read">Pages lues</string>
+    <string name="menu_browser_sort_pages_left">Pages restantes</string>
 
     <string name="drawer_open">Ouvrir le volet de navigation</string>
     <string name="drawer_close">Fermer le volet de navigation</string>
@@ -24,13 +51,32 @@
     <string name="menu_browser">Parcourir</string>
     <string name="menu_about">À propos</string>
 
+    <string name="library_header_recent">Récents</string>
+    <string name="library_header_all">Tout</string>
+
     <string name="directory_picker_header">Définissez le répertoire de vos BDs</string>
     <string name="directory_picker_confirm">Selectionner</string>
     <string name="directory_picker_cancel">Annuler</string>
 
     <string name="search">Rechercher</string>
+    <string name="browser_search_hint">Saisissez un terme de recherche</string>
 
-    <string name="browser_search_hint">Veuillez entrer un terme de recherche</string>
+    <string name="reload">Mettre à jour la bibliothèque</string>
+    <string name="reload_msg_fast">Mise à jour rapide</string>
+    <string name="reload_msg_slow">Recharger tous les fichiers</string>
 
-    <string name="reload">Recharger</string>
+    <string name="theme">Thème</string>
+    <string name="theme_auto">Auto</string>
+    <string name="theme_day">Clair</string>
+    <string name="theme_night">Sombre</string>
+
+    <string name="alert_action_positive">Oui</string>
+    <string name="alert_action_negative">Non</string>
+    <string name="alert_action_neutral">OK</string>
+
+    <string name="switch_next_comic">Passer à la BD suivante ?</string>
+    <string name="switch_prev_comic">Revenir à la BD précédente ?</string>
+
+    <string name="library_empty">Votre collection semble vide. Cliquez sur l’icône « dossier » pour sélectionner un répertoire.</string>
+    <string name="warning_missing_file">Fichier manquant. Veuillez mettre à jour la bibliothèque.</string>
 </resources>
