@@ -233,6 +233,8 @@ public class Scanner {
                         storage.removeComic(missing.getId());
                     }
 
+                notifyMediaUpdated();
+
                 // second pass: search and parse zero-page comics
                 storedComics = storage.listComics(mSubFolder != null ? mSubFolder.toString() : null);
                 for (int i = 0; i < storedComics.size() && !mIsStopped; i++) {
