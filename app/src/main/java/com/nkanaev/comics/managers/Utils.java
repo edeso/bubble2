@@ -813,4 +813,18 @@ public final class Utils {
             return in;
         }
     }
+
+    public static boolean containsIgnoreCase(String haystack, String needle) {
+        if (haystack == null || needle == null)
+            return false;
+
+        if (needle.length() < 1)
+            return true;
+
+        for (int i = haystack.length() - needle.length(); i >= 0; i--) {
+            if (haystack.regionMatches(true, i, needle, 0, needle.length()))
+                return true;
+        }
+        return false;
+    }
 }
