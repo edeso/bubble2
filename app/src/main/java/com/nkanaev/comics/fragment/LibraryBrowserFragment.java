@@ -275,6 +275,7 @@ public class LibraryBrowserFragment extends Fragment
                 updateColors();
                 mFilterRead = item.getItemId();
                 filterContent();
+                sortContent();
                 refreshAdapter();
                 return true;
             case R.id.menu_browser_refresh:
@@ -442,6 +443,7 @@ public class LibraryBrowserFragment extends Fragment
     public boolean onQueryTextChange(String s) {
         mFilterSearch = s;
         filterContent();
+        sortContent();
         refreshAdapter();
         return true;
     }
