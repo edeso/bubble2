@@ -525,7 +525,7 @@ public class LibraryBrowserFragment extends Fragment
         mAllItems.clear();
 
         for (Comic c : mComics) {
-            if (mFilterSearch.length() > 0 && !c.getFile().getName().contains(mFilterSearch))
+            if (mFilterSearch.length() > 0 && !Utils.containsIgnoreCase(c.getFile().getName(),mFilterSearch))
                 continue;
             if (mFilterRead != R.id.menu_browser_filter_all) {
                 if (mFilterRead == R.id.menu_browser_filter_read && c.getCurrentPage() != c.getTotalPages())
