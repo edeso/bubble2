@@ -274,8 +274,10 @@ public class LibraryBrowserFragment extends Fragment
                 //  couldn't find out how though
                 updateColors();
                 mFilterRead = item.getItemId();
-                filterContent();
-                sortContent();
+                mAllItems = filterList(mComics);
+                sortList(mAllItems);
+                mRecentItems = findRecents(mAllItems);
+                limitRecents(calculateNumColumns());
                 refreshAdapter();
                 return true;
             case R.id.menu_browser_refresh:
@@ -396,7 +398,7 @@ public class LibraryBrowserFragment extends Fragment
             break;
         }
 
-        sortContent();
+        sortList(mAllItems);
         refreshAdapter();
     }
 
@@ -442,8 +444,10 @@ public class LibraryBrowserFragment extends Fragment
     @Override
     public boolean onQueryTextChange(String s) {
         mFilterSearch = s;
-        filterContent();
-        sortContent();
+        mAllItems = filterList(mComics);
+        sortList(mAllItems);
+        mRecentItems = findRecents(mAllItems);
+        limitRecents(calculateNumColumns());
         refreshAdapter();
         return true;
     }
@@ -479,30 +483,34 @@ public class LibraryBrowserFragment extends Fragment
     private void getComics() {
         //mCacheStamp = Long.valueOf(System.currentTimeMillis());
         mComics = Storage.getStorage(getActivity()).listComics(mPath);
-        findRecents();
+        mAllItems = filterList(mComics);
+        mRecentItems = findRecents(mAllItems);
         limitRecents( calculateNumColumns() );
-        filterContent();
-        sortContent();
+        sortList(mAllItems);
         refreshAdapter();
     }
 
-    private void findRecents() {
-        mRecentItems.clear();
+    private List<Comic> findRecents(List<Comic> comics) {
+        List recents = new ArrayList<>();
+        if (comics == null)
+            return recents;
 
-        for (Comic c : mComics) {
+        for (Comic c : comics) {
             if (c.getUpdatedAt() > 0) {
-                mRecentItems.add(c);
+                recents.add(c);
             }
         }
 
-        if (mRecentItems.size() > 0) {
-            Collections.sort(mRecentItems, new Comparator<Comic>() {
+        if (recents.size() > 0) {
+            Collections.sort(recents, new Comparator<Comic>() {
                 @Override
                 public int compare(Comic lhs, Comic rhs) {
                     return Long.compare(rhs.getUpdatedAt(), lhs.getUpdatedAt());
                 }
             });
         }
+
+        return recents;
     }
 
     private void limitRecents( final int numColumns ){
@@ -523,11 +531,13 @@ public class LibraryBrowserFragment extends Fragment
         }
     }
 
-    private void filterContent() {
-        mAllItems.clear();
+    private List<Comic> filterList(List<Comic> comics) {
+        List<Comic> filtered = new ArrayList();
+        if (comics == null)
+            return filtered;
 
-        for (Comic c : mComics) {
-            if (mFilterSearch.length() > 0 && !Utils.containsIgnoreCase(c.getFile().getName(),mFilterSearch))
+        for (Comic c : comics) {
+            if (mFilterSearch.length() > 0 && !Utils.containsIgnoreCase(c.getFile().getName(), mFilterSearch))
                 continue;
             if (mFilterRead != R.id.menu_browser_filter_all) {
                 if (mFilterRead == R.id.menu_browser_filter_read && c.getCurrentPage() != c.getTotalPages())
@@ -540,12 +550,14 @@ public class LibraryBrowserFragment extends Fragment
                         (c.getCurrentPage() == 0 || c.getCurrentPage() == c.getTotalPages()))
                     continue;
             }
-            mAllItems.add(c);
+            filtered.add(c);
         }
+
+        return filtered;
     }
 
-    private void sortContent() {
-        if (mAllItems == null || mAllItems.isEmpty())
+    private void sortList(List<Comic> comics) {
+        if (comics == null)
             return;
 
         Comparator comparator;
@@ -731,7 +743,7 @@ public class LibraryBrowserFragment extends Fragment
                 break;
         }
 
-        Collections.sort(mAllItems, comparator);
+        Collections.sort(comics, comparator);
     }
 
     private Comic getComicAtPosition(int position) {
@@ -758,10 +770,8 @@ public class LibraryBrowserFragment extends Fragment
     }
 
     private boolean hasRecent() {
-        return mFilterSearch.length() == 0
-                && mFilterRead == R.id.menu_browser_filter_all
-                && mSort != R.id.sort_access_desc
-                && mRecentItems.size() > 0;
+        return mRecentItems != null && mRecentItems.size() > 0 &&
+                mSort != R.id.sort_access_desc ;
     }
 
     private int calculateNumColumns() {
