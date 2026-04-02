@@ -6,8 +6,8 @@
     <color name="refreshProgressBackground">@color/darkest_trans80</color>
 
     <!-- values for card gradient backgrounds -->
-    <color name="card_gradient_start">@color/darkest_trans50</color>
-    <color name="card_gradient_center">@color/darkest_trans80</color>
+    <color name="card_gradient_start">@color/black_trans40</color>
+    <color name="card_gradient_center">@color/black_trans95</color>
     <color name="card_gradient_end">@color/darkest</color>
 
     <color name="about_trans_bg">@color/grey25</color>

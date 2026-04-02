@@ -44,8 +44,13 @@
     <color name="white_trans95">#f2ffffff</color>
     <color name="white">#fff</color>
 
+    <color name="black_trans5">#0D000000</color>
+    <color name="black_trans10">#1A000000</color>
+    <color name="black_trans15">#26000000</color>
+    <color name="black_trans20">#33000000</color>
     <color name="black_trans25">#40000000</color>
     <color name="black_trans30">#4D000000</color>
+    <color name="black_trans35">#59000000</color>
     <color name="black_trans40">#4D000000</color>
     <color name="black_trans50">#80000000</color>
     <color name="black_trans55">#8C000000</color>
@@ -67,6 +72,7 @@
     <color name="darkest_trans30">#4D222222</color>
     <color name="darkest_trans35">#59222222</color>
     <color name="darkest_trans40">#66222222</color>
+    <color name="darkest_trans45">#73222222</color>
     <color name="darkest_trans50">#80222222</color>
     <color name="darkest_trans55">#8C222222</color>
     <color name="darkest_trans60">#99222222</color>
