@@ -50,6 +50,7 @@ android {
         targetSdk = 36
         //targetSdkPreview "VanillaIceCream"
         multiDexEnabled = true
+        vectorDrawables.useSupportLibrary = true
 
         versionName = getVersionName()
         versionCode = getVersionCode()
@@ -146,9 +147,9 @@ dependencies {
 
     // 7-Zip-JBinding-4Android 16.02-2.03+ API21
     //implementation 'com.github.omicronapps:7-Zip-JBinding-4Android:Release-16.02-2.02'
-    implementation 'com.github.lings03:7-Zip-JBinding-4Android:2025.06.13'
+    //implementation 'com.github.lings03:7-Zip-JBinding-4Android:2025.06.13'
     //implementation 'com.sorrowblue.sevenzipjbinding:7-Zip-JBinding-4Android:16.02-2.03'
-    //implementation 'com.github.edeso:7-Zip-JBinding-4Android:master-SNAPSHOT'
+    implementation 'com.github.edeso:7-Zip-JBinding-4Android:ndk-upgrade-SNAPSHOT'
 
     implementation 'com.github.luben:zstd-jni:1.5.7-7@aar'
     implementation 'org.brotli:dec:0.1.2'
