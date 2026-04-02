@@ -911,9 +911,8 @@ public class LibraryBrowserFragment extends Fragment
 
                 return new HeaderViewHolder(view);
             } else if (i == ITEM_VIEW_TYPE_HEADER_ALL) {
-                TextView view = (TextView) LayoutInflater.from(ctx)
+                 TextView view = (TextView) LayoutInflater.from(ctx)
                         .inflate(R.layout.header_library, viewGroup, false);
-                view.setText(R.string.library_header_all);
 
                 return new HeaderViewHolder(view);
             }
@@ -929,6 +928,21 @@ public class LibraryBrowserFragment extends Fragment
                 Comic comic = getComicAtPosition(i);
                 ComicViewHolder holder = (ComicViewHolder) viewHolder;
                 holder.setupComic(comic);
+            }
+            else if (viewHolder.getItemViewType() == ITEM_VIEW_TYPE_HEADER_ALL) {
+                // show filter name as ALL section header
+                int stringResId = R.string.menu_browser_filter_all;
+                if (mFilterRead == R.id.menu_browser_filter_read)
+                    stringResId = R.string.menu_browser_filter_read;
+                else if (mFilterRead == R.id.menu_browser_filter_unread)
+                    stringResId = R.string.menu_browser_filter_unread;
+                else if (mFilterRead == R.id.menu_browser_filter_unfinished)
+                    stringResId = R.string.menu_browser_filter_unfinished;
+                else if (mFilterRead == R.id.menu_browser_filter_reading)
+                    stringResId = R.string.menu_browser_filter_reading;
+
+                HeaderViewHolder holder = (HeaderViewHolder) viewHolder;
+                holder.setTitle(stringResId);
             }
         }
 
