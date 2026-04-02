@@ -690,9 +690,14 @@ public class LibraryFragment extends Fragment
         @Override
         public void onClick(View v) {
             int position = getAbsoluteAdapterPosition();
-            String path = mComicsListManager.getDirectoryAtIndex(position);
-            LibraryBrowserFragment fragment = LibraryBrowserFragment.create(path);
-            ((MainActivity) getActivity()).pushFragment(fragment);
+            try {
+                String path = mComicsListManager.getDirectoryAtIndex(position);
+                LibraryBrowserFragment fragment = LibraryBrowserFragment.create(path);
+                ((MainActivity) getActivity()).pushFragment(fragment);
+            } catch (Exception e) {
+                // usually during refreshing when getAbsoluteAdapterPosition() returns -1 (NO_POSITION)
+                Log.e("library","open library browser", e);
+            }
         }
     }
 
