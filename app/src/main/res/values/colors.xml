@@ -19,9 +19,9 @@
     <color name="background">@color/lighter</color>
 
     <!-- values for card gradient backgrounds -->
-    <color name="card_gradient_start">@color/white_trans80</color>
-    <color name="card_gradient_center">@color/white_trans95</color>
-    <color name="card_gradient_end">@color/white</color>
+    <color name="card_gradient_start">@color/white_trans75</color>
+    <color name="card_gradient_center">@color/white</color>
+    <color name="card_gradient_end">@color/white_trans95</color>
 
     <color name="about_trans_bg">@color/grey50</color>
     <color name="about_trans_row_bg">@color/white_trans75</color>
@@ -31,7 +31,12 @@
     <color name="primaryDark37">#9e3b46</color>
     <color name="primaryDark50">#88333b</color>
 
+    <color name="white_trans5">#0Dffffff</color>
+    <color name="white_trans10">#1Affffff</color>
+    <color name="white_trans15">#26ffffff</color>
+    <color name="white_trans20">#33ffffff</color>
     <color name="white_trans25">#40ffffff</color>
+    <color name="white_trans30">#4Dffffff</color>
     <color name="white_trans50">#80ffffff</color>
     <color name="white_trans55">#8CFFFFFF</color>
     <color name="white_trans60">#99FFFFFF</color>
