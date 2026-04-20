@@ -5,6 +5,9 @@
         <!--item name="android:background">@color/black</item-->
         <!-- set for padded main window systembar background for API35 edge-to-edge -->
         <item name="android:windowBackground">?attr/colorPrimaryDark</item>
+        <!-- set shadow color to something bright that is noticeable -->
+        <item name="android:outlineSpotShadowColor" tools:targetApi="28">@color/white</item>
+        <item name="android:outlineAmbientShadowColor" tools:targetApi="28">@color/white</item>
     </style>
     <style name="AboutBGStyle" parent="AppThemeDayNight">
         <item name="android:background">@null</item>
