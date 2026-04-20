@@ -7,7 +7,7 @@
 
     <!-- values for card gradient backgrounds -->
     <color name="card_gradient_start">@color/black_trans40</color>
-    <color name="card_gradient_center">@color/black_trans95</color>
+    <color name="card_gradient_center">@color/black_trans90</color>
     <color name="card_gradient_end">@color/darkest</color>
 
     <color name="about_trans_bg">@color/grey25</color>
