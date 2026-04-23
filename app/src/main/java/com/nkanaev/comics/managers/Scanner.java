@@ -138,7 +138,7 @@ public class Scanner {
                 String libDir = MainApplication.getPreferences()
                         .getString(Constants.SETTINGS_LIBRARY_DIR, "");
 
-                if (libDir.equals(""))
+                if (libDir.isEmpty())
                     return;
 
                 File libDirFile = new File(libDir);
