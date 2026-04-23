@@ -179,6 +179,7 @@ public class Scanner {
                 Deque<File> directories = new ArrayDeque<>();
                 directories.add(baseFolder);
                 long lastNotifyMediaUpdated = Utils.now();
+                boolean changed = false;
                 while (!directories.isEmpty()) {
                     if (mIsStopped)
                         break;
@@ -215,13 +216,15 @@ public class Scanner {
                             storedComics.remove(storedComic);
                         } else {
                             storage.addBook(file, null, 0);
+                            changed = true;
                         }
                     }
 
                     // notify for each folder, maximum every 0.5s
-                    if (Utils.milliSecondsSince(lastNotifyMediaUpdated) > 500) {
+                    if (changed && Utils.milliSecondsSince(lastNotifyMediaUpdated) > 500) {
                         notifyMediaUpdated();
                         lastNotifyMediaUpdated = Utils.now();
+                        changed = false;
                     }
                 }
 
@@ -229,11 +232,15 @@ public class Scanner {
                 // unless we were rudely interrupted
                 if (!mIsStopped)
                     for (Comic missing : storedComics) {
+                        changed = true;
                         Utils.deleteCoverCacheFile(missing);
                         storage.removeComic(missing.getId());
                     }
 
-                notifyMediaUpdated();
+                if (changed) {
+                    notifyMediaUpdated();
+                    changed = false;
+                }
 
                 // second pass: search and parse zero-page comics
                 storedComics = storage.listComics(mSubFolder != null ? mSubFolder.toString() : null);
