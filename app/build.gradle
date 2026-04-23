@@ -138,7 +138,7 @@ dependencies {
     implementation 'com.google.android.material:material:1.13.0'
     // constraintlayout 2.2.0+ needs API21
     implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
-    implementation 'com.github.junrar:junrar:7.5.8'
+    implementation 'com.github.junrar:junrar:7.5.10'
     //noinspection NewerVersionAvailable
     implementation 'com.squareup.picasso:picasso:2.8'
     implementation 'org.apache.commons:commons-compress:1.28.0'
