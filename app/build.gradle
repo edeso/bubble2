@@ -152,7 +152,7 @@ dependencies {
     //implementation 'com.sorrowblue.sevenzipjbinding:7-Zip-JBinding-4Android:16.02-2.03'
     implementation 'com.github.edeso:7-Zip-JBinding-4Android:ndk-upgrade-SNAPSHOT'
 
-    implementation 'com.github.luben:zstd-jni:1.5.7-7@aar'
+    implementation 'com.github.luben:zstd-jni:1.5.7-8@aar'
     implementation 'org.brotli:dec:0.1.2'
     // jp2-android 1.0.4+ API21, gemalto aar vanished from jcenter
     //implementation 'com.gemalto.jp2:jp2-android:1.0.3'
