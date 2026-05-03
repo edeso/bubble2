@@ -36,7 +36,7 @@
                 android:src="@drawable/ic_refresh_24"
                 android:layout_alignParentRight="true"
                 android:background="@android:color/transparent"
-                app:tint="#000"/>
+                app:tint="?android:attr/textColorPrimary"/>
     </RelativeLayout>
 
     <!-- needs android:layout_weight or the buttons on the bottom wil not be displayed -->
