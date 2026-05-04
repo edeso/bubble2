@@ -17,6 +17,7 @@ import android.text.SpannableString;
 import android.text.style.AlignmentSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
+import android.util.Log;
 import android.view.*;
 import android.widget.*;
 import androidx.annotation.ColorInt;
@@ -24,6 +25,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.StyleRes;
 import androidx.appcompat.view.menu.MenuBuilder;
 import androidx.appcompat.view.menu.MenuItemImpl;
+import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.appcompat.widget.SearchView;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.MenuItemCompat;
@@ -74,6 +76,7 @@ public class LibraryBrowserFragment extends Fragment
     private String mFilterSearch = "";
     private int mFilterRead = R.id.menu_browser_filter_all;
     private int mSort = R.id.sort_name_asc;
+    private boolean mDisplayRecents = true;
 
     private RecyclerView mComicListView;
     private SwipeRefreshLayout mRefreshLayout;
@@ -99,15 +102,29 @@ public class LibraryBrowserFragment extends Fragment
         mPath = getArguments().getString(PARAM_PATH);
 
         // restore saved sorting
-        int savedSortMode = MainApplication.getPreferences().getInt(
-                Constants.SETTINGS_LIBRARY_BROWSER_SORT,
-                Constants.SortMode.NAME_ASC.id);
-        mSort = R.id.sort_name_asc;
-        for (Constants.SortMode mode: Constants.SortMode.values()) {
-            if (savedSortMode != mode.id)
-                continue;
-            mSort = mode.resId;
-            break;
+        try {
+            int savedSortMode = MainApplication.getPreferences().getInt(
+                    Constants.SETTINGS_LIBRARY_BROWSER_SORT,
+                    Constants.SortMode.NAME_ASC.id);
+
+            mSort = R.id.sort_name_asc;
+            for (Constants.SortMode mode : Constants.SortMode.values()) {
+                if (savedSortMode != mode.id)
+                    continue;
+                mSort = mode.resId;
+                break;
+            }
+        } catch (Exception e) {
+            Log.e("librarybrowser", "can't read saved sort mode", e);
+        }
+
+
+        // restore display recents setting
+        try {
+            mDisplayRecents = MainApplication.getPreferences().getBoolean(
+                    Constants.SETTINGS_LIBRARY_BROWSER_RECENTS, mDisplayRecents);
+        } catch (Exception e) {
+            Log.e("librarybrowser", "can't read display recents setting", e);
         }
 
         getComics();
@@ -389,7 +406,7 @@ public class LibraryBrowserFragment extends Fragment
             mSort = id;
 
         // save sortMode
-        for (Constants.SortMode mode: Constants.SortMode.values()) {
+        for (Constants.SortMode mode : Constants.SortMode.values()) {
             if (mSort != mode.resId)
                 continue;
             SharedPreferences.Editor editor = MainApplication.getPreferences().edit();
@@ -473,7 +490,7 @@ public class LibraryBrowserFragment extends Fragment
         Utils.disablePendingTransition(getActivity());
     }
 
-    private void refreshAdapter(){
+    private void refreshAdapter() {
         if (mComicListView == null)
             return;
 
@@ -485,7 +502,7 @@ public class LibraryBrowserFragment extends Fragment
         mComics = Storage.getStorage(getActivity()).listComics(mPath);
         mAllItems = filterList(mComics);
         mRecentItems = findRecents(mAllItems);
-        limitRecents( calculateNumColumns() );
+        limitRecents(calculateNumColumns());
         sortList(mAllItems);
         refreshAdapter();
     }
@@ -513,13 +530,13 @@ public class LibraryBrowserFragment extends Fragment
         return recents;
     }
 
-    private void limitRecents( final int numColumns ){
+    private void limitRecents(final int numColumns) {
         if (mRecentItems == null || mRecentItems.isEmpty())
             return;
 
         // we default to 2 columns -1 unless min recent count is bigger
-        int recentsNum = 2*numColumns-1;
-        while ( Constants.MIN_RECENT_COUNT > recentsNum ) {
+        int recentsNum = 2 * numColumns - 1;
+        while (Constants.MIN_RECENT_COUNT > recentsNum) {
             recentsNum += numColumns;
         }
 
@@ -754,7 +771,7 @@ public class LibraryBrowserFragment extends Fragment
             else
                 comic = mAllItems.get(position - mRecentItems.size() - NUM_HEADERS);
         } else {
-            comic = mAllItems.get(position);
+            comic = mAllItems.get(position - 1);
         }
         return comic;
     }
@@ -765,13 +782,24 @@ public class LibraryBrowserFragment extends Fragment
                 return ITEM_VIEW_TYPE_HEADER_RECENT;
             else if (position == mRecentItems.size() + 1)
                 return ITEM_VIEW_TYPE_HEADER_ALL;
+        } else if (position == 0) {
+            return ITEM_VIEW_TYPE_HEADER_ALL;
         }
         return ITEM_VIEW_TYPE_COMIC;
     }
 
     private boolean hasRecent() {
-        return mRecentItems != null && mRecentItems.size() > 0 &&
-                mSort != R.id.sort_access_desc ;
+        return mDisplayRecents && mRecentItems != null &&
+                mRecentItems.size() > 0 && mSort != R.id.sort_access_desc;
+    }
+
+    private void setRecentDisplayed(boolean onoff) {
+        mDisplayRecents = onoff;
+        refreshAdapter();
+        // memorize
+        SharedPreferences.Editor editor = MainApplication.getPreferences().edit();
+        editor.putBoolean(Constants.SETTINGS_LIBRARY_BROWSER_RECENTS, onoff);
+        editor.apply();
     }
 
     private int calculateNumColumns() {
@@ -802,7 +830,7 @@ public class LibraryBrowserFragment extends Fragment
 
     private void onRefresh(boolean refreshAll) {
         setLoading(true);
-        String msg = getResources().getString( refreshAll ? R.string.reload_msg_slow : R.string.reload_msg_fast );
+        String msg = getResources().getString(refreshAll ? R.string.reload_msg_slow : R.string.reload_msg_fast);
         Toast.makeText(getActivity(), msg, Toast.LENGTH_SHORT).show();
         Scanner.getInstance().scanLibrary(new File(mPath), refreshAll);
     }
@@ -850,6 +878,11 @@ public class LibraryBrowserFragment extends Fragment
                 } else {
                     position -= (NUM_HEADERS + mRecentItems.size());
                 }
+            } else {
+                if (position == 0)
+                    // the all header by itself
+                    return;
+                position -= 1;
             }
 
             int column = position % mSpanCount;
@@ -878,7 +911,8 @@ public class LibraryBrowserFragment extends Fragment
             if (hasRecent()) {
                 return mAllItems.size() + mRecentItems.size() + NUM_HEADERS;
             }
-            return mAllItems.size();
+            // all plus header
+            return mAllItems.size() + 1;
         }
 
         @Override
@@ -901,18 +935,38 @@ public class LibraryBrowserFragment extends Fragment
             Context ctx = viewGroup.getContext();
 
             if (i == ITEM_VIEW_TYPE_HEADER_RECENT) {
-                TextView view = (TextView) LayoutInflater.from(ctx)
+                View view = LayoutInflater.from(ctx)
                         .inflate(R.layout.header_library, viewGroup, false);
-                view.setText(R.string.library_header_recent);
+
+                view.findViewById(R.id.recentsIcon).setVisibility(View.GONE);
+                AppCompatImageButton button = view.findViewById(R.id.closeIcon);
+                button.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        setRecentDisplayed(false);
+                    }
+                });
+
+                HeaderViewHolder headerViewHolder = new HeaderViewHolder(view);
+                headerViewHolder.setTitle(R.string.library_header_recent);
 
                 int spacing = (int) getResources().getDimension(R.dimen.grid_margin);
                 RecyclerView.LayoutParams lp = (RecyclerView.LayoutParams) view.getLayoutParams();
                 lp.setMargins(0, spacing, 0, 0);
 
-                return new HeaderViewHolder(view);
+                return headerViewHolder;
             } else if (i == ITEM_VIEW_TYPE_HEADER_ALL) {
-                 TextView view = (TextView) LayoutInflater.from(ctx)
+                View view = LayoutInflater.from(ctx)
                         .inflate(R.layout.header_library, viewGroup, false);
+                view.findViewById(R.id.closeIcon).setVisibility(View.GONE);
+
+                AppCompatImageButton button = view.findViewById(R.id.recentsIcon);
+                button.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        setRecentDisplayed(true);
+                    }
+                });
 
                 return new HeaderViewHolder(view);
             }
@@ -943,6 +997,8 @@ public class LibraryBrowserFragment extends Fragment
 
                 HeaderViewHolder holder = (HeaderViewHolder) viewHolder;
                 holder.setTitle(stringResId);
+
+                holder.showRecentsIcon(!mDisplayRecents);
             }
         }
 
@@ -954,7 +1010,13 @@ public class LibraryBrowserFragment extends Fragment
         }
 
         public void setTitle(int titleRes) {
-            ((TextView) itemView).setText(titleRes);
+            TextView textView = itemView.findViewById(R.id.headerText);
+            textView.setText(titleRes);
+        }
+
+        public void showRecentsIcon(boolean show) {
+            View button = itemView.findViewById(R.id.recentsIcon);
+            button.setVisibility(show ? View.VISIBLE : View.GONE);
         }
     }
 
@@ -985,7 +1047,7 @@ public class LibraryBrowserFragment extends Fragment
             //if (lastCacheStamp != null && !lastCacheStamp.equals(mCacheStamp))
             //   mPicasso.invalidate(uri);
             mPicasso.load(uri).into(mComicImageView);
-           //mCache.put(uri, mCacheStamp);
+            //mCache.put(uri, mCacheStamp);
 
             // reload comic (in case it was updated by the cover loading)
             comic = Storage.getStorage(getContext()).getComic(comic.getId());

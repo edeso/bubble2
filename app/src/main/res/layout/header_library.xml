@@ -1,10 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView
+<LinearLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="top"
         android:paddingTop="@dimen/header_padding_vertical"
         android:paddingBottom="@dimen/header_padding_vertical"
         android:paddingLeft="@dimen/header_padding_horizontal"
-        android:paddingRight="@dimen/header_padding_horizontal"
-        style="@style/LibraryHeader"/>
+        android:paddingRight="@dimen/header_padding_horizontal">
+    <TextView
+            android:id="@+id/headerText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Header Header Header"
+            style="@style/LibraryHeader"/>
+    <androidx.appcompat.widget.AppCompatImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="4dp"
+            android:paddingLeft="20dp"
+            android:paddingBottom="4dp"
+            android:id="@+id/recentsIcon"
+            android:tooltipText="Show Recents"
+            android:src="@drawable/ic_history_18"
+            android:background="@android:color/transparent"
+            app:tint="?android:attr/textColorPrimary"/>
+    <androidx.appcompat.widget.AppCompatImageButton
+            android:layout_width="36dp"
+            android:layout_height="26dp"
+            android:scaleType="fitXY"
+            android:paddingLeft="20dp"
+            android:paddingBottom="10dp"
+            android:id="@+id/closeIcon"
+            android:tooltipText="Hide Recents"
+            android:src="@drawable/ic_close_18"
+            android:background="@android:color/transparent"
+            app:tint="?android:attr/textColorPrimary"/>
+</LinearLayout>

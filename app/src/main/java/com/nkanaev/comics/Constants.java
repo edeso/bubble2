@@ -15,6 +15,7 @@ public class Constants {
 
     public static final String SETTINGS_LIBRARY_SORT = "SETTINGS_LIBRARY_SORT";
     public static final String SETTINGS_LIBRARY_BROWSER_SORT = "SETTINGS_LIBRARY_BROWSER_SORT";
+    public static final String SETTINGS_LIBRARY_BROWSER_RECENTS = "SETTINGS_LIBRARY_BROWSER_RECENTS";
 
     public static final int MESSAGE_MEDIA_UPDATE_FINISHED = 0;
     public static final int MESSAGE_MEDIA_UPDATED = 1;
