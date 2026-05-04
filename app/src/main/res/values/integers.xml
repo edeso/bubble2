@@ -3,8 +3,8 @@
     <integer name="grid_group_column_width">280</integer>
     <integer name="grid_comic_column_width">200</integer>
 
-    <dimen name="grid_padding">5dp</dimen>
-    <dimen name="grid_margin">10dp</dimen>
+    <dimen name="grid_padding">4dp</dimen>
+    <dimen name="grid_margin">8dp</dimen>
 
     <dimen name="header_padding_horizontal">20dp</dimen>
     <dimen name="header_padding_vertical">10dp</dimen>
