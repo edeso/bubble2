@@ -123,7 +123,7 @@ dependencies {
     // appcompat v1.7+ API21
     implementation 'androidx.appcompat:appcompat:1.7.1'
     // for multiple dex files on pre-Android 5 devices
-    implementation 'androidx.multidex:multidex:2.0.1'
+    //implementation 'androidx.multidex:multidex:2.0.1'
     // startup-runtime 1.2.+ API21
     implementation 'androidx.startup:startup-runtime:1.2.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'

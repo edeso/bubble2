@@ -5,10 +5,9 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import androidx.appcompat.app.AppCompatDelegate;
-import androidx.multidex.MultiDexApplication;
 
 
-public class MainApplication extends MultiDexApplication {
+public class MainApplication extends Application {
     private static Application instance;
 
     @Override
