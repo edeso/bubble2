@@ -36,7 +36,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:paddingRight="10dp"
-                        android:layout_gravity="center|left"
+                        android:layout_gravity="center_vertical"
                         android:id="@+id/sort_name_label"
                         android:text="@string/menu_browser_sort_name"/>
                 <androidx.appcompat.widget.AppCompatImageView
@@ -58,7 +58,7 @@
                 <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="center|left"
+                        android:layout_gravity="center_vertical"
                         android:id="@+id/sort_access_label"
                         android:text="@string/menu_browser_sort_access"/>
                 <androidx.appcompat.widget.AppCompatImageView
@@ -80,7 +80,7 @@
                 <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="center|left"
+                        android:layout_gravity="center_vertical"
                         android:id="@+id/sort_size_label"
                         android:text="@string/menu_browser_sort_size"/>
                 <androidx.appcompat.widget.AppCompatImageView
@@ -94,7 +94,6 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:padding="8dp"
-                        app:tint="#66ffffff"
                         android:src="@drawable/ic_sort_size_desc_24"/>
             </TableRow>
             <TableRow android:background="@drawable/divider"/>
@@ -103,7 +102,7 @@
                 <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="center|left"
+                        android:layout_gravity="center_vertical"
                         android:id="@+id/sort_creation_label"
                         android:text="@string/menu_sort_creation"/>
                 <androidx.appcompat.widget.AppCompatImageView
@@ -126,7 +125,7 @@
                 <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="center|left"
+                        android:layout_gravity="center_vertical"
                         android:id="@+id/sort_modified_label"
                         android:text="@string/menu_sort_modified"/>
                 <androidx.appcompat.widget.AppCompatImageView
@@ -150,7 +149,7 @@
                 <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="center|left"
+                        android:layout_gravity="center_vertical"
                         android:id="@+id/sort_pages_label"
                         android:text="@string/menu_browser_sort_pages_total"/>
                 <androidx.appcompat.widget.AppCompatImageView
@@ -171,7 +170,7 @@
                 <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="center|left"
+                        android:layout_gravity="center_vertical"
                         android:id="@+id/sort_pages_read_label"
                         android:text="@string/menu_browser_sort_pages_read"/>
                 <androidx.appcompat.widget.AppCompatImageView
@@ -192,7 +191,7 @@
                 <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="center|left"
+                        android:layout_gravity="center_vertical"
                         android:id="@+id/sort_pages_left_label"
                         android:text="@string/menu_browser_sort_pages_left"/>
                 <androidx.appcompat.widget.AppCompatImageView
