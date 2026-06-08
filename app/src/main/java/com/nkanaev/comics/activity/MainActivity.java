@@ -227,17 +227,13 @@ public class MainActivity extends AppCompatActivity
                     return true;
                 }
 
-                switch (menuItem.getItemId()) {
-                    case R.id.drawer_menu_library:
-                        setFragment(new LibraryFragment());
-                        break;
-                    case R.id.drawer_menu_browser:
-                        setFragment(new BrowserFragment());
-                        break;
-                    case R.id.drawer_menu_about:
-                        setFragment(new AboutFragment());
-                        break;
-                }
+                final int selectedItem = menuItem.getItemId();
+                if (selectedItem == R.id.drawer_menu_library)
+                    setFragment(new LibraryFragment());
+                else if (selectedItem == R.id.drawer_menu_browser)
+                    setFragment(new BrowserFragment());
+                else if (selectedItem == R.id.drawer_menu_about)
+                    setFragment(new AboutFragment());
 
                 mCurrentNavItem = menuItem.getItemId();
                 menuItem.setChecked(true);

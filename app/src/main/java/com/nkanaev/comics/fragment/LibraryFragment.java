@@ -301,133 +301,134 @@ public class LibraryFragment extends Fragment
     @SuppressLint("RestrictedApi")
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch(item.getItemId()) {
-            case R.id.menuLibrarySetDir:
-                if (Scanner.getInstance().isRunning()) {
-                    Scanner.getInstance().stop();
-                }
+        if (item.getItemId() == R.id.menuLibrarySetDir) {
+            if (Scanner.getInstance().isRunning()) {
+                Scanner.getInstance().stop();
+            }
 
-                mDirectorySelectDialog.show();
+            mDirectorySelectDialog.show();
+            return true;
+        }
+        if (item.getItemId() == R.id.menuLibraryRefresh) {
+            // if running, stop is requested
+            if (Scanner.getInstance().isRunning()) {
+                setLoading(false);
+                Scanner.getInstance().stop();
                 return true;
-            case R.id.menuLibraryRefresh:
-                // if running, stop is requested
-                if (Scanner.getInstance().isRunning()) {
-                    setLoading(false);
-                    Scanner.getInstance().stop();
-                    return true;
-                }
+            }
 
-                onRefresh();
-                return true;
-            case R.id.menuLibrarySetThemeAuto:
-            case R.id.menuLibrarySetThemeDay:
-            case R.id.menuLibrarySetThemeNight:
-                final int mode;
-                if (item.getItemId() == R.id.menuLibrarySetThemeNight)
-                    mode = AppCompatDelegate.MODE_NIGHT_YES;
-                else if (item.getItemId() == R.id.menuLibrarySetThemeDay)
-                    mode = AppCompatDelegate.MODE_NIGHT_NO;
-                else
-                    mode = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM;
-                // save to settings
-                SharedPreferences preferences = MainApplication.getPreferences();
-                SharedPreferences.Editor editor = preferences.edit();
-                editor.putInt(Constants.SETTINGS_THEME, mode);
-                editor.apply();
-                // apply
-                new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+            onRefresh();
+            return true;
+        }
+        if (Arrays.asList(R.id.menuLibrarySetThemeAuto, R.id.menuLibrarySetThemeDay, R.id.menuLibrarySetThemeNight).contains(item.getItemId())) {
+            final int mode;
+            if (item.getItemId() == R.id.menuLibrarySetThemeNight)
+                mode = AppCompatDelegate.MODE_NIGHT_YES;
+            else if (item.getItemId() == R.id.menuLibrarySetThemeDay)
+                mode = AppCompatDelegate.MODE_NIGHT_NO;
+            else
+                mode = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM;
+            // save to settings
+            SharedPreferences preferences = MainApplication.getPreferences();
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putInt(Constants.SETTINGS_THEME, mode);
+            editor.apply();
+            // apply
+            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    // crashes on Android9 if executed immediately
+                    AppCompatDelegate.setDefaultNightMode(mode);
+                    // activity.recreate() does not properly recreate views
+                    Activity a = getActivity();
+                    a.finish();
+                    a.startActivity(a.getIntent());
+                }
+            }, 500);
+            return true;
+        }
+
+        if (item.getItemId() == R.id.menuLibrarySort) {
+            // apparently you need to implement custom layout submenus yourself
+            View popupView = getLayoutInflater().inflate(R.layout.layout_library_sort, null);
+            // show header conditionally
+            if (((MenuItemImpl) item).isActionButton()) {
+                popupView.findViewById(R.id.sort_header).setVisibility(View.GONE);
+                popupView.findViewById(R.id.sort_header_divider).setVisibility(View.GONE);
+            }
+            // creation time needs java.nio only avail on API26+
+            // disabled for now, folders give the same stamp for creation/lastmod why izzat?
+            if (true || !Utils.isOreoOrLater()) {
+                popupView.findViewById(R.id.sort_creation).setVisibility(View.GONE);
+                popupView.findViewById(R.id.sort_creation_divider).setVisibility(View.GONE);
+            }
+
+            @StyleRes int theme = ((MainActivity) getActivity()).getToolbar().getPopupTheme();
+            @ColorInt int normal = Utils.getThemeColor(androidx.appcompat.R.attr.colorControlNormal, theme);
+            @ColorInt int active = Utils.getThemeColor(androidx.appcompat.R.attr.colorControlActivated, theme);
+
+            PopupWindow popupWindow = new PopupWindow(popupView, RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT, true);
+            // weirdly needed on preAPI21 to dismiss on tap outside
+            popupWindow.setBackgroundDrawable(new ColorDrawable(androidx.appcompat.R.attr.colorPrimary));
+
+            // add click listener/apply styling according to selected sort mode
+            for (int labelId : sortIds.keySet()) {
+                TextView tv = popupView.findViewById(labelId);
+                // attach clicklistener
+                tv.setOnClickListener(new View.OnClickListener() {
                     @Override
-                    public void run() {
-                        // crashes on Android9 if executed immediately
-                        AppCompatDelegate.setDefaultNightMode(mode);
-                        // activity.recreate() does not properly recreate views
-                        Activity a = getActivity();
-                        a.finish();
-                        a.startActivity(a.getIntent());
+                    public void onClick(View v) {
+                        onSortItemSelected(labelId);
+                        popupWindow.dismiss();
                     }
-                },500);
-                return true;
-            case R.id.menuLibrarySort:
-                // apparently you need to implement custom layout submenus yourself
-                View popupView = getLayoutInflater().inflate(R.layout.layout_library_sort, null);
-                // show header conditionally
-                if (((MenuItemImpl)item).isActionButton()) {
-                    popupView.findViewById(R.id.sort_header).setVisibility(View.GONE);
-                    popupView.findViewById(R.id.sort_header_divider).setVisibility(View.GONE);
-                }
-                // creation time needs java.nio only avail on API26+
-                // disabled for now, folders give the same stamp for creation/lastmod why izzat?
-                if (true || !Utils.isOreoOrLater()) {
-                    popupView.findViewById(R.id.sort_creation).setVisibility(View.GONE);
-                    popupView.findViewById(R.id.sort_creation_divider).setVisibility(View.GONE);
-                }
+                });
 
-                @StyleRes int theme = ((MainActivity) getActivity()).getToolbar().getPopupTheme();
-                @ColorInt int normal = Utils.getThemeColor(androidx.appcompat.R.attr.colorControlNormal, theme);
-                @ColorInt int active = Utils.getThemeColor(androidx.appcompat.R.attr.colorControlActivated, theme);
+                List<Integer> buttonIds = sortIds.get(labelId);
+                // is it selected?
+                boolean label_active = buttonIds.contains(mSort);
+                int label_tint = label_active ? active : normal;
+                // reset formatting
+                CharSequence text = tv.getText();
+                SpannableString s = new SpannableString(text);
+                // style away
+                s.setSpan(new ForegroundColorSpan(label_tint), 0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                s.setSpan(new StyleSpan(label_active ? Typeface.BOLD : Typeface.NORMAL), 0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                tv.setText(s);
 
-                PopupWindow popupWindow = new PopupWindow(popupView, RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT, true);
-                // weirdly needed on preAPI21 to dismiss on tap outside
-                popupWindow.setBackgroundDrawable(new ColorDrawable(androidx.appcompat.R.attr.colorPrimary));
-
-                // add click listener/apply styling according to selected sort mode
-                for (int labelId : sortIds.keySet()) {
-                    TextView tv = popupView.findViewById(labelId);
+                // handle buttons
+                for (int buttonId : buttonIds) {
+                    ImageView iv = popupView.findViewById(buttonId);
                     // attach clicklistener
-                    tv.setOnClickListener(new View.OnClickListener() {
+                    iv.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            onSortItemSelected(labelId);
+                            onSortItemSelected(buttonId);
                             popupWindow.dismiss();
                         }
                     });
 
-                    List<Integer> buttonIds = sortIds.get(labelId);
-                    // is it selected?
-                    boolean label_active = buttonIds.contains(mSort);
-                    int label_tint = label_active ? active : normal;
-                    // reset formatting
-                    CharSequence text = tv.getText();
-                    SpannableString s = new SpannableString(text);
-                    // style away
-                    s.setSpan(new ForegroundColorSpan(label_tint), 0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    s.setSpan(new StyleSpan(label_active ? Typeface.BOLD : Typeface.NORMAL), 0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    tv.setText(s);
-
-                    // handle buttons
-                    for (int buttonId : buttonIds) {
-                        ImageView iv = popupView.findViewById(buttonId);
-                        // attach clicklistener
-                        iv.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                onSortItemSelected(buttonId);
-                                popupWindow.dismiss();
-                            }
-                        });
-
-                        // switch button colors, for buttons only
-                        int tint = buttonId == mSort ? active : normal;
-                        ImageViewCompat.setImageTintList(iv, ColorStateList.valueOf(tint));
-                    }
-
+                    // switch button colors, for buttons only
+                    int tint = buttonId == mSort ? active : normal;
+                    ImageViewCompat.setImageTintList(iv, ColorStateList.valueOf(tint));
                 }
 
-                float dp = getResources().getDisplayMetrics().density;
-                // place popup window top right
-                int xOffset, yOffset;
-                // lil space on the right side
-                xOffset=Math.round(4*dp);
-                // below status bar
-                yOffset=Math.round(30*dp);
-                // API21+ place submenu popups below status+actionbar
-                if (Utils.isLollipopOrLater()) {
-                    yOffset = Math.round(17 * dp) + ((MainActivity) getActivity()).getToolbar().getHeight();
-                    popupWindow.setElevation(16);
-                }
-                // show at location
-                popupWindow.showAtLocation(getActivity().getWindow().getDecorView(),Gravity.TOP|Gravity.RIGHT,xOffset,yOffset);
-                return true;
+            }
+
+            float dp = getResources().getDisplayMetrics().density;
+            // place popup window top right
+            int xOffset, yOffset;
+            // lil space on the right side
+            xOffset = Math.round(4 * dp);
+            // below status bar
+            yOffset = Math.round(30 * dp);
+            // API21+ place submenu popups below status+actionbar
+            if (Utils.isLollipopOrLater()) {
+                yOffset = Math.round(17 * dp) + ((MainActivity) getActivity()).getToolbar().getHeight();
+                popupWindow.setElevation(16);
+            }
+            // show at location
+            popupWindow.showAtLocation(getActivity().getWindow().getDecorView(), Gravity.TOP | Gravity.RIGHT, xOffset, yOffset);
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -512,37 +513,27 @@ public class LibraryFragment extends Fragment
             mFolderListView.getAdapter().notifyDataSetChanged();
     }
 
-    private void sortContent(){
-        if (mComicsListManager== null || mComicsListManager.getCount() < 1)
+    private void sortContent() {
+        if (mComicsListManager == null || mComicsListManager.getCount() < 1)
             return;
 
         Comparator comparator;
-        switch (mSort){
-            case R.id.sort_name_desc:
-                comparator = new DirectoryListingManager.NameComparator.Reverse();
-                break;
-            case R.id.sort_size_asc:
-                comparator = new DirectoryListingManager.SizeComparator();
-                break;
-            case R.id.sort_size_desc:
-                comparator = new DirectoryListingManager.SizeComparator.Reverse();
-                break;
-            case R.id.sort_modified_asc:
-                comparator = new DirectoryListingManager.ModifiedComparator();
-                break;
-            case R.id.sort_modified_desc:
-                comparator = new DirectoryListingManager.ModifiedComparator.Reverse();
-                break;
-            case R.id.sort_access_asc:
-                comparator = new DirectoryListingManager.AccessedComparator();
-                break;
-            case R.id.sort_access_desc:
-                comparator = new DirectoryListingManager.AccessedComparator.Reverse();
-                break;
-            default:
-                comparator = new DirectoryListingManager.NameComparator();
-                break;
-        }
+        if (mSort == R.id.sort_name_desc)
+            comparator = new DirectoryListingManager.NameComparator.Reverse();
+        else if (mSort == R.id.sort_size_asc)
+            comparator = new DirectoryListingManager.SizeComparator();
+        else if (mSort == R.id.sort_size_desc)
+            comparator = new DirectoryListingManager.SizeComparator.Reverse();
+        else if (mSort == R.id.sort_modified_asc)
+            comparator = new DirectoryListingManager.ModifiedComparator();
+        else if (mSort == R.id.sort_modified_desc)
+            comparator = new DirectoryListingManager.ModifiedComparator.Reverse();
+        else if (mSort == R.id.sort_access_asc)
+            comparator = new DirectoryListingManager.AccessedComparator();
+        else if (mSort == R.id.sort_access_desc)
+            comparator = new DirectoryListingManager.AccessedComparator.Reverse();
+        else
+            comparator = new DirectoryListingManager.NameComparator();
 
         mComicsListManager.sort(comparator);
     }
