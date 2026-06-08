@@ -62,15 +62,6 @@ android {
         ]
    }
 
-    // reconfigure to create APK file without '-release' suffix.
-    applicationVariants.all { variant ->
-        if (variant.buildType.name.equals("release")) {
-            variant.outputs.all {
-                outputFileName = "${base.archivesName.get()}.apk"
-            }
-        }
-    }
-
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -117,6 +108,17 @@ android {
         includeInBundle = false
     }
 
+}
+
+// new AGP9 DSL variant to rename release apk only
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        if (variant.buildType.equals("release")) {
+            variant.outputs.forEach { output ->
+                output.outputFileName.set("${base.archivesName.get()}.apk")
+            }
+        }
+    }
 }
 
 dependencies {
