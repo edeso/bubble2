@@ -99,6 +99,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
     private Uri mUri = null;
     private Constants.PageViewMode mPageViewMode;
     private boolean mIsLeftToRight;
+    private boolean mKeepScreenOn;
 
     private Parser mParser;
     private Exception mParserException = null;
@@ -260,6 +261,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
                 Constants.PageViewMode.ASPECT_FIT.native_int);
         mPageViewMode = Constants.PageViewMode.values()[viewModeInt];
         mIsLeftToRight = preferences.getBoolean(Constants.SETTINGS_READING_LEFT_TO_RIGHT, true);
+        mKeepScreenOn = preferences.getBoolean(Constants.SETTINGS_KEEP_SCREEN_ON, false);
 
         setHasOptionsMenu(true);
     }
@@ -492,6 +494,8 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
         } else {
             menu.findItem(R.id.reading_right_to_left).setChecked(true);
         }
+
+        menu.findItem(R.id.keep_screen_on).setChecked(mKeepScreenOn);
     }
 
     @Override
@@ -506,6 +510,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
 
     @Override
     public void onPause() {
+        setKeepScreenOn(false);
         if (mComic != null) {
             mComic.setCurrentPage(getCurrentPage());
         }
@@ -516,6 +521,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
     @Override
     public void onResume() {
         setFullscreen(isFullscreen());
+        setKeepScreenOn(mKeepScreenOn);
         super.onResume();
     }
 
@@ -596,6 +602,13 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
                 // rotating imageview does not reset boundings unfortunately, dunno howto fix for now
                 // also touch events are registered to the imageview and rotate with the image, not good
                 //rotatePage(pos, degrees);
+                break;
+            case R.id.keep_screen_on:
+                item.setChecked(!item.isChecked());
+                mKeepScreenOn = item.isChecked();
+                editor.putBoolean(Constants.SETTINGS_KEEP_SCREEN_ON, mKeepScreenOn);
+                editor.apply();
+                setKeepScreenOn(mKeepScreenOn);
                 break;
             case R.id.menu_reader_export:
                 exportCurrentPage();
@@ -1172,6 +1185,15 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
             }
         });
         alertDialog.show();
+    }
+
+    private void setKeepScreenOn(boolean keepOn) {
+        Window win = getActivity().getWindow();
+        if (keepOn) {
+            win.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        } else {
+            win.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
     }
 
     private void updateSeekBar() {

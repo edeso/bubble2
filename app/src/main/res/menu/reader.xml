@@ -34,6 +34,10 @@
             </group>
         </menu>
     </item>
+    <item android:id="@+id/keep_screen_on"
+          android:title="@string/action_keep_screen_on"
+          android:checkable="true"
+          app:showAsAction="never"/>
     <item android:id="@+id/menu_reader_export"
           android:title="@string/action_view_export"
           android:icon="@drawable/ic_download_18"

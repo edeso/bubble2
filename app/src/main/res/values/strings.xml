@@ -25,6 +25,8 @@
     <string name="action_reading_mode_left_to_right">Comics</string>
     <string name="action_reading_mode_right_to_left">Manga</string>
 
+    <string name="action_keep_screen_on">Keep screen on</string>
+
     <string name="menu_browser_filter">Filter</string>
     <string name="menu_browser_filter_all">All</string>
     <string name="menu_browser_filter_read">Read</string>
