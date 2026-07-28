@@ -510,7 +510,6 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
 
     @Override
     public void onPause() {
-        setKeepScreenOn(false);
         if (mComic != null) {
             mComic.setCurrentPage(getCurrentPage());
         }
@@ -521,7 +520,6 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
     @Override
     public void onResume() {
         setFullscreen(isFullscreen());
-        setKeepScreenOn(mKeepScreenOn);
         super.onResume();
     }
 
