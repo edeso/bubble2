@@ -10,10 +10,10 @@ def getVersionCode = { ->
         ignoreExitValue true
     }.standardOutput
 
-    def tagList = stream.asText.get().trim()
+    def tagList = stream.asText.get()
     if (tagList.isEmpty())
         return 1
-    return stream.asText.get().split("\n").size() as Integer
+    return tagList.split("\n").size() as Integer
 }
 
 // use git describe to generate a version name looking like
