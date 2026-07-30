@@ -568,60 +568,73 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         SharedPreferences.Editor editor = MainApplication.getPreferences().edit();
-        switch (item.getItemId()) {
-            case R.id.view_mode_aspect_fill:
-            case R.id.view_mode_aspect_fit:
-            case R.id.view_mode_fit_width:
-                item.setChecked(true);
-                mPageViewMode = RESOURCE_VIEW_MODE.get(item.getItemId());
-                editor.putInt(Constants.SETTINGS_PAGE_VIEW_MODE, mPageViewMode.native_int);
-                editor.apply();
-                updatePageViews(mViewPager);
-                break;
-            case R.id.reading_left_to_right:
-            case R.id.reading_right_to_left:
-                item.setChecked(true);
-                int page = getCurrentPage();
-                mIsLeftToRight = (item.getItemId() == R.id.reading_left_to_right);
-                editor.putBoolean(Constants.SETTINGS_READING_LEFT_TO_RIGHT, mIsLeftToRight);
-                editor.apply();
-                setCurrentPage(page, false);
-                mViewPager.getAdapter().notifyDataSetChanged();
-                updateSeekBar();
-                break;
-            case R.id.rotate:
-                // add 90 degree to current page rotation
-                int pos = getCurrentPage()-1;
-                Integer degrees = mRotations.get(pos);
-                if (degrees == null)
-                    degrees = 0;
-                degrees += 90;
-                mRotations.put(pos,degrees);
-                // apply rotation during (re)load
-                mViewPager.getAdapter().notifyDataSetChanged();
-                //updatePageViews(mViewPager,pos,true);
-                // work in progress,
-                // rotating imageview does not reset boundings unfortunately, dunno howto fix for now
-                // also touch events are registered to the imageview and rotate with the image, not good
-                //rotatePage(pos, degrees);
-                break;
-            case R.id.keep_screen_on:
-                // switch state
-                mKeepScreenOn = !mKeepScreenOn;
-                // apply
-                setKeepScreenOn(mKeepScreenOn);
-                // switch ui
-                item.setChecked(mKeepScreenOn);
-                item.setIcon(!mKeepScreenOn ? R.drawable.ic_timer_18 : R.drawable.ic_timer_off_18);
-                // memorize
-                editor.putBoolean(Constants.SETTINGS_KEEP_SCREEN_ON, mKeepScreenOn);
-                editor.apply();
-                break;
-            case R.id.menu_reader_export:
-                exportCurrentPage();
-                break;
+
+        if (Arrays.asList(
+                R.id.view_mode_aspect_fill,
+                R.id.view_mode_aspect_fit,
+                R.id.view_mode_fit_width).contains(item.getItemId())) {
+
+            item.setChecked(true);
+            mPageViewMode = RESOURCE_VIEW_MODE.get(item.getItemId());
+            editor.putInt(Constants.SETTINGS_PAGE_VIEW_MODE, mPageViewMode.native_int);
+            editor.apply();
+            updatePageViews(mViewPager);
+            return true;
         }
-        return super.onOptionsItemSelected(item);
+
+        if (Arrays.asList(
+                R.id.reading_left_to_right,
+                R.id.reading_right_to_left).contains(item.getItemId())) {
+
+            item.setChecked(true);
+            int page = getCurrentPage();
+            mIsLeftToRight = (item.getItemId() == R.id.reading_left_to_right);
+            editor.putBoolean(Constants.SETTINGS_READING_LEFT_TO_RIGHT, mIsLeftToRight);
+            editor.apply();
+            setCurrentPage(page, false);
+            mViewPager.getAdapter().notifyDataSetChanged();
+
+            return true;
+        }
+
+        if (item.getItemId() == R.id.rotate) {
+            // add 90 degree to current page rotation
+            int pos = getCurrentPage() - 1;
+            Integer degrees = mRotations.get(pos);
+            if (degrees == null)
+                degrees = 0;
+            degrees += 90;
+            mRotations.put(pos, degrees);
+            // apply rotation during (re)load
+            mViewPager.getAdapter().notifyDataSetChanged();
+            //updatePageViews(mViewPager,pos,true);
+            // work in progress,
+            // rotating imageview does not reset boundings unfortunately, dunno howto fix for now
+            // also touch events are registered to the imageview and rotate with the image, not good
+            //rotatePage(pos, degrees);
+            return true;
+        }
+
+        if (item.getItemId() ==  R.id.keep_screen_on) {
+            // switch state
+            mKeepScreenOn = !mKeepScreenOn;
+            // apply
+            setKeepScreenOn(mKeepScreenOn);
+            // switch ui
+            item.setChecked(mKeepScreenOn);
+            item.setIcon(!mKeepScreenOn ? R.drawable.ic_timer_18 : R.drawable.ic_timer_off_18);
+            // memorize
+            editor.putBoolean(Constants.SETTINGS_KEEP_SCREEN_ON, mKeepScreenOn);
+            editor.apply();
+            return true;
+        }
+
+        if (item.getItemId() == R.id.menu_reader_export) {
+            exportCurrentPage();
+            return true;
+        }
+
+        return false;
     }
 
     private void rotatePage(int pos, int degrees){
