@@ -356,6 +356,9 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
         mPageInfoButton.setOnClickListener(ocl);
         mPageInfoTextView.setOnClickListener(ocl);
 
+        // re-apply keep screen on setting
+        setKeepScreenOn(mKeepScreenOn);
+
         // setup view pager, set adapter after parsing in bg thread below
         mViewPager = view.findViewById(R.id.viewPager);
         mViewPager.setOffscreenPageLimit(2);
@@ -496,6 +499,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
         }
 
         menu.findItem(R.id.keep_screen_on).setChecked(mKeepScreenOn);
+        menu.findItem(R.id.keep_screen_on).setIcon(!mKeepScreenOn ? R.drawable.ic_timer_18 : R.drawable.ic_timer_off_18);
     }
 
     @Override
@@ -602,11 +606,16 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
                 //rotatePage(pos, degrees);
                 break;
             case R.id.keep_screen_on:
-                item.setChecked(!item.isChecked());
-                mKeepScreenOn = item.isChecked();
+                // switch state
+                mKeepScreenOn = !mKeepScreenOn;
+                // apply
+                setKeepScreenOn(mKeepScreenOn);
+                // switch ui
+                item.setChecked(mKeepScreenOn);
+                item.setIcon(!mKeepScreenOn ? R.drawable.ic_timer_18 : R.drawable.ic_timer_off_18);
+                // memorize
                 editor.putBoolean(Constants.SETTINGS_KEEP_SCREEN_ON, mKeepScreenOn);
                 editor.apply();
-                setKeepScreenOn(mKeepScreenOn);
                 break;
             case R.id.menu_reader_export:
                 exportCurrentPage();
