@@ -796,7 +796,7 @@ public class LibraryBrowserFragment extends Fragment
         int columnWidth = getActivity().getResources().getInteger(R.integer.grid_comic_column_width);
 
         int cols = Math.round((float) deviceWidth / columnWidth);
-        return cols > 0 ? cols : 1;
+        return cols > 3 ? cols : 3;
     }
 
     private GridLayoutManager.SpanSizeLookup createSpanSizeLookup() {

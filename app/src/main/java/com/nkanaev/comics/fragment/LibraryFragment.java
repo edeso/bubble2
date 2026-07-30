@@ -615,9 +615,10 @@ public class LibraryFragment extends Fragment
         int deviceWidth = Utils.getDeviceWidth(getActivity());
         int columnWidth = getActivity().getResources().getInteger(R.integer.grid_group_column_width);
 
-        float value = (float) deviceWidth / columnWidth;
+        int value = Math.round( (float) deviceWidth / columnWidth );
 
-        return Math.round(value);
+        // we enforce a minimum of 2 for the library
+        return value > 1 ? value : 2;
     }
 
     private final class GroupGridAdapter extends RecyclerView.Adapter {

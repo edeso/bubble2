@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <integer name="grid_group_column_width">280</integer>
-    <integer name="grid_comic_column_width">200</integer>
+    <integer name="grid_group_column_width">240</integer>
+    <integer name="grid_comic_column_width">180</integer>
 
     <dimen name="grid_padding">4dp</dimen>
     <dimen name="grid_margin">8dp</dimen>
