@@ -136,7 +136,7 @@ public class LocalCoverHandler extends RequestHandler {
 
             return result;
         } catch (Exception e) {
-            Log.e("LocalCoverHandler", "getCover", e);
+            Log.e("LocalCoverHandler.getCover", c.getFile().toString(), e);
             if (!(e instanceof IOException))
                 e = new IOException(e);
             throw (IOException) e;
