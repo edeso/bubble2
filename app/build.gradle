@@ -36,10 +36,12 @@ android {
     //compileSdk = 36
     compileSdk {
         version = release(37) {
-            it.minorApiLevel = 0
+            // this block and its properties are optional
+            minorApiLevel = 0
+            //sdkExtension = 18
         }
+        //version = preview("CinnamonBun")
     }
-    //compileSdkPreview "CANARY"
     //buildToolsVersion '28.0.3'
 
     defaultConfig {
@@ -48,8 +50,8 @@ android {
 
         minSdk = 21
         targetSdk = 37
-        //targetSdkPreview "VanillaIceCream"
-        multiDexEnabled = true
+        //targetSdkPreview = "CinnamonBun"
+
         vectorDrawables.useSupportLibrary = true
 
         versionName = getVersionName()
@@ -90,7 +92,7 @@ android {
             shrinkResources = false
         }
     }
-    packagingOptions {
+    packaging {
         resources {
             excludes += ['META-INF/DEPENDENCIES', 'META-INF/DEPENDENCIES.txt', 'META-INF/LICENSE', 'META-INF/LICENSE.txt', 'META-INF/NOTICE', 'META-INF/NOTICE.txt']
         }
@@ -155,7 +157,7 @@ dependencies {
     //implementation 'com.sorrowblue.sevenzipjbinding:7-Zip-JBinding-4Android:16.02-2.03'
     implementation 'com.github.edeso:7-Zip-JBinding-4Android:ndk-upgrade-SNAPSHOT'
 
-    implementation 'com.github.luben:zstd-jni:1.5.7-10@aar'
+    implementation 'com.github.luben:zstd-jni:1.5.7-11@aar'
     implementation 'org.brotli:dec:0.1.2'
     // jp2-android 1.0.4+ API21, gemalto aar vanished from jcenter
     //implementation 'com.gemalto.jp2:jp2-android:1.0.3'
