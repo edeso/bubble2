@@ -1,5 +1,7 @@
 Bubble2 - Android comic book reader, image archive viewer.
-Copyright (C) 2026 Edgar Soldin
+
+Copyright (C) 2026 Edgar Soldin<br>
+Copyright (C) 2016 Nazar Kanaev
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
