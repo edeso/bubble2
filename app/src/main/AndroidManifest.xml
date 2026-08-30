@@ -23,11 +23,12 @@
 
         <!-- use android:configChanges to prevent activity destruction on mere rotation
              see  https://stackoverflow.com/questions/3329318/android-how-to-not-destroy-the-activity-when-i-rotate-the-device/#35207927
+             android:configChanges="colorMode|keyboard|keyboardHidden|mcc|mnc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|touchscreen|uiMode"
+             TODO: disabled until Viewpager2 relayout after rotation is solved
              -->
         <activity android:name=".activity.ReaderActivity"
                   android:parentActivityName=".activity.MainActivity"
                   android:theme="@style/ReaderTheme"
-                  android:configChanges="colorMode|keyboard|keyboardHidden|mcc|mnc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|touchscreen|uiMode"
                   android:exported="true">
 
             <meta-data android:name="android.support.PARENT_ACTIVITY"
