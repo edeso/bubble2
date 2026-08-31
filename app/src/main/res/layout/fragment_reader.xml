@@ -1,20 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<androidx.viewpager2.widget.ViewPager2
         xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/darkest">
-    <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/progressPlaceholder"
-            android:visibility="visible">
-        <include layout="@layout/progress_image"/>
-    </RelativeLayout>
-    <com.nkanaev.comics.view.ComicViewPager
-            android:id="@+id/viewPager"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:visibility="invisible"/>
-</RelativeLayout>
+        android:clipToPadding="false"/>

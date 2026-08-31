@@ -14,6 +14,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.util.SparseArray;
@@ -39,8 +40,8 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
-import androidx.viewpager.widget.PagerAdapter;
-import androidx.viewpager.widget.ViewPager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
 import com.nkanaev.comics.BuildConfig;
 import com.nkanaev.comics.Constants;
 import com.nkanaev.comics.MainApplication;
@@ -53,7 +54,7 @@ import com.nkanaev.comics.model.Storage;
 import com.nkanaev.comics.parsers.Parser;
 import com.nkanaev.comics.parsers.ParserFactory;
 import com.nkanaev.comics.view.CircularPathAnimation;
-import com.nkanaev.comics.view.ComicViewPager;
+import com.nkanaev.comics.view.GestureOverlayLayout;
 import com.nkanaev.comics.view.PageImageView;
 import com.squareup.picasso.MemoryPolicy;
 import com.squareup.picasso.Picasso;
@@ -63,10 +64,12 @@ import org.apache.commons.imaging.formats.jpeg.exif.ExifRewriter;
 
 import java.io.*;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.util.*;
+import java.util.concurrent.*;
 
 
 public class ReaderFragment extends Fragment implements View.OnTouchListener {
@@ -79,7 +82,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
     public static final String STATE_NEW_COMIC_TITLE = "STATE_NEW_COMIC_TITLE";
     public static final String STATE_PAGE_ROTATIONS = "STATE_PAGE_ROTATIONS";
 
-    private ComicViewPager mViewPager;
+    private ViewPager2 mViewPager;
     private View mPageNavLayout;
     private SeekBar mPageSeekBar;
     private TextView mPageNavTextView;
@@ -99,6 +102,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
     private Uri mUri = null;
     private Constants.PageViewMode mPageViewMode;
     private boolean mIsLeftToRight;
+    private boolean mIsVertical;
 
     private Parser mParser;
     private Exception mParserException = null;
@@ -106,7 +110,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
     private Picasso mPicasso;
     private LocalComicHandler mComicHandler;
     private SparseArray<MyTarget> mTargets = new SparseArray<>();
-    private HashMap<Integer,Integer> mRotations = new HashMap();
+    private HashMap<Integer, Integer> mRotations = new HashMap();
 
     private Comic mComic = null;
     private Comic mNewComic;
@@ -123,6 +127,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
         RESOURCE_VIEW_MODE.put(R.id.view_mode_aspect_fill, Constants.PageViewMode.ASPECT_FILL);
         RESOURCE_VIEW_MODE.put(R.id.view_mode_aspect_fit, Constants.PageViewMode.ASPECT_FIT);
         RESOURCE_VIEW_MODE.put(R.id.view_mode_fit_width, Constants.PageViewMode.FIT_WIDTH);
+        RESOURCE_VIEW_MODE.put(R.id.view_mode_fit_height, Constants.PageViewMode.FIT_HEIGHT);
     }
 
     // callback launch exportCurrentPage after permission was requested
@@ -169,6 +174,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
         try {
             if (mode == Mode.MODE_INTENT) {
                 Intent intent = (Intent) bundle.getParcelable(PARAM_HANDLER);
+                // TODO: handle possible null uri
                 mUri = intent.getData();
                 // google files app provides an url encoded file:// url as path,
                 // try it, prevents the need to copy the file
@@ -182,15 +188,13 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
                 Log.i("URI", mUri.toString());
 
                 mParser = ParserFactory.create(intent);
-            }
-            else if (mode == Mode.MODE_LIBRARY) {
+            } else if (mode == Mode.MODE_LIBRARY) {
                 int comicId = bundle.getInt(PARAM_HANDLER);
                 mComic = Storage.getStorage(getActivity()).getComic(comicId);
                 mFile = mComic.getFile();
 
                 mParser = ParserFactory.create(mFile);
-            }
-            else if (mode == Mode.MODE_BROWSER) {
+            } else if (mode == Mode.MODE_BROWSER) {
                 mFile = (File) bundle.getSerializable(PARAM_HANDLER);
                 mParser = ParserFactory.create(mFile);
             }
@@ -252,7 +256,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
                 .build();
 
         mGestureDetector = new GestureDetector(getActivity(), new ReaderOnGestureListener());
-        mToolbarGestureDetector =  new GestureDetector(getActivity(), new ToolbarOnGestureListener());
+        mToolbarGestureDetector = new GestureDetector(getActivity(), new ToolbarOnGestureListener());
 
         SharedPreferences preferences = MainApplication.getPreferences();
         int viewModeInt = preferences.getInt(
@@ -260,6 +264,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
                 Constants.PageViewMode.ASPECT_FIT.native_int);
         mPageViewMode = Constants.PageViewMode.values()[viewModeInt];
         mIsLeftToRight = preferences.getBoolean(Constants.SETTINGS_READING_LEFT_TO_RIGHT, true);
+        mIsVertical = preferences.getBoolean(Constants.SETTINGS_READING_VERTICAL, false);
 
         setHasOptionsMenu(true);
     }
@@ -267,11 +272,10 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_reader, container, false);
-        mPageNavLayout = getActivity().findViewById(R.id.pageNavLayout);
 
         if (!Utils.isVanillaIceCreamOrLater()) {
             getActivity().findViewById(R.id.menu_frame_reader).setFitsSystemWindows(true);
-        }else{
+        } else {
             // API35 edge-to-edge fix: apply needed system bar paddings
             ViewCompat.setOnApplyWindowInsetsListener(
                     getActivity().findViewById(R.id.menu_frame_reader),
@@ -283,9 +287,9 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
                             Insets systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars());
                             // apply to toolbar as top padding (keeping bg color)
                             View toolbar = view.findViewById(R.id.toolbar_reader);
-                            toolbar.setPadding(systemBarsInsets.left,systemBarsInsets.top,systemBarsInsets.right,toolbar.getPaddingBottom());
+                            toolbar.setPadding(systemBarsInsets.left, systemBarsInsets.top, systemBarsInsets.right, toolbar.getPaddingBottom());
                             // apply to frame to position scrollbar properly
-                            view.setPadding(systemBarsInsets.left,view.getPaddingTop(),systemBarsInsets.right,systemBarsInsets.bottom);
+                            view.setPadding(systemBarsInsets.left, view.getPaddingTop(), systemBarsInsets.right, systemBarsInsets.bottom);
                             return WindowInsetsCompat.CONSUMED;
                         }
                     }
@@ -300,7 +304,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
                     @Override
                     public boolean onPreDraw() {
                         View toolbarView = menuView.findViewById(R.id.toolbar_reader);
-                            toolbarView.setOnTouchListener(new View.OnTouchListener() {
+                        toolbarView.setOnTouchListener(new View.OnTouchListener() {
                             @Override
                             public boolean onTouch(View v, MotionEvent event) {
                                 return mToolbarGestureDetector.onTouchEvent(event);
@@ -312,27 +316,59 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
                     }
                 });
 
+        boolean onOff = MainApplication.getPreferences().
+                getBoolean(Constants.SETTINGS_DEBUG_GESTURES, false);
+        ((GestureOverlayLayout)getActivity().findViewById(R.id.gesture_layout)).setGestureVisible(onOff);
+
+        mPageNavLayout = getActivity().findViewById(R.id.pageNavLayout);
+
         // setup seekbar
         mPageSeekBar = (SeekBar) mPageNavLayout.findViewById(R.id.pageSeekBar);
         mPageSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            // TODO:
+            //  this is not working well.
+            //  maybe implement minimal delay of 100 millisecs or so
+            //  before page changes will be enqueued at all. all faster
+            //  changes will simply overwrite the previous request.
+            ExecutorService executor = new ThreadPoolExecutor(
+                    1, 1,
+                    0L, TimeUnit.MILLISECONDS,
+                    new LinkedBlockingQueue<Runnable>(2),
+                    Executors.defaultThreadFactory(),
+                    new ThreadPoolExecutor.DiscardOldestPolicy());
+
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (fromUser) {
-                    if (mIsLeftToRight)
-                        setCurrentPage(progress + 1);
-                    else
-                        setCurrentPage(mPageSeekBar.getMax() - progress + 1);
-                }
+                // ignore no-user changes
+                if (!fromUser)
+                    return;
+
+                executor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (mIsLeftToRight)
+                                    setCurrentPage(progress + 1);
+                                else
+                                    setCurrentPage(mPageSeekBar.getMax() - progress + 1);
+                            }
+                        });
+                    }
+                });
             }
 
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-                mPicasso.pauseTag(ReaderFragment.this.getActivity());
+                // disabled as it interfered with delayed page loading
+                //mPicasso.pauseTag(ReaderFragment.this.getActivity());
             }
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                mPicasso.resumeTag(ReaderFragment.this.getActivity());
+                // disabled as it interfered with delayed page loading
+                //mPicasso.resumeTag(ReaderFragment.this.getActivity());
             }
         });
         updateSeekBar();
@@ -354,11 +390,39 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
         mPageInfoButton.setOnClickListener(ocl);
         mPageInfoTextView.setOnClickListener(ocl);
 
-        // setup view pager, set adapter after parsing in bg thread below
+        // setup view pager, adapter assigned after parsing in bg thread below
         mViewPager = view.findViewById(R.id.viewPager);
-        mViewPager.setOffscreenPageLimit(2);
-        mViewPager.setOnTouchListener(this);
-        mViewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+        mViewPager.setOrientation(mIsVertical ? ViewPager2.ORIENTATION_VERTICAL : ViewPager2.ORIENTATION_HORIZONTAL);
+        try {
+            // workaround to raise touchslop (lower paging sensitivity)
+            final Field recyclerViewField = ViewPager2.class.getDeclaredField("mRecyclerView");
+            recyclerViewField.setAccessible(true);
+            final RecyclerView recyclerView = (RecyclerView) recyclerViewField.get(mViewPager);
+
+            final Field touchSlopField = RecyclerView.class.getDeclaredField("mTouchSlop");
+            touchSlopField.setAccessible(true);
+            final int touchSlop = (int) touchSlopField.get(recyclerView);
+            touchSlopField.set(recyclerView, touchSlop * 2);
+
+            // not sure if this changes anything still
+            long duration = 80;
+            RecyclerView.ItemAnimator anim = recyclerView.getItemAnimator();
+            anim.setAddDuration(duration);
+            anim.setRemoveDuration(duration);
+            anim.setMoveDuration(duration);
+            anim.setChangeDuration(duration);
+            recyclerView.setItemAnimator(null);
+
+        } catch (Exception ignore) {
+            Log.e("onCreateView", "Couldn't raise viewpager2 touchslop.", ignore);
+        }
+        // TODO: maybe remove together with class on the bottom. was just a test.
+        //mViewPager.setPageTransformer(new DepthPageTransformer());
+        // disabled: page limit introduces weird side effect when switching reading direction
+        //           active page jumps by the set value to the left
+        //mViewPager.setOffscreenPageLimit(5);
+
+        mViewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
                 if (mIsLeftToRight) {
@@ -368,24 +432,35 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
                 }
             }
         });
-        mViewPager.setOnSwipeOutListener(new ComicViewPager.OnSwipeOutListener() {
-            @Override
-            public void onSwipeOutAtStart() {
-                if (mIsLeftToRight)
-                    hitBeginning();
-                else
-                    hitEnding();
-            }
+
+        // swipe out workaround, seems to do the trick
+        // via https://stackoverflow.com/questions/64224874/detect-swiping-out-of-bounds-in-androids-viewpager2
+        mViewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            private boolean settled = false;
 
             @Override
-            public void onSwipeOutAtEnd() {
-                if (mIsLeftToRight)
-                    hitEnding();
-                else
-                    hitBeginning();
+            public void onPageScrollStateChanged(int state) {
+                super.onPageScrollStateChanged(state);
+                if (state == ViewPager2.SCROLL_STATE_DRAGGING) {
+                    settled = false;
+                }
+                if (state == ViewPager2.SCROLL_STATE_SETTLING) {
+                    settled = true;
+                }
+                if (state == ViewPager2.SCROLL_STATE_IDLE && !settled) {
+                    int page = mViewPager.getCurrentItem();
+                    if ((mIsLeftToRight && page == 0) ||
+                            (!mIsLeftToRight && page == mPageCount - 1)) {
+                        hitBeginning();
+                    } else if ((!mIsLeftToRight && page == 0) ||
+                            (mIsLeftToRight && page == mPageCount - 1)) {
+                        hitEnding();
+                    }
+                }
             }
         });
 
+        // restore saved instance settings
         if (savedInstanceState != null) {
             boolean fullscreen = savedInstanceState.getBoolean(STATE_FULLSCREEN, true);
             setFullscreen(fullscreen);
@@ -400,7 +475,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
             }
             // restore previous rotations
             HashMap pageRotations = (HashMap) savedInstanceState.getSerializable(STATE_PAGE_ROTATIONS);
-            if (pageRotations!=null)
+            if (pageRotations != null)
                 mRotations = pageRotations;
         } else {
             setFullscreen(mIsFullscreen);
@@ -423,26 +498,25 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
                         mPageCount = mParser.numPages();
                         // update page count if it changed inbetween
                         // (e.g. refresh when file is still incomplete due to ongoing copy process)
-                        if (mComic != null && mPageCount != mComic.getTotalPages()){
-                            Storage.getStorage(getActivity()).updateBook(mComic.getId(),null,mPageCount);
+                        if (mComic != null && mPageCount != mComic.getTotalPages()) {
+                            Storage.getStorage(getActivity()).updateBook(mComic.getId(), null, mPageCount);
                         }
                     } catch (IOException e) {
                         Log.e("", "", e);
                     }
-                getActivity().runOnUiThread(new Runnable() {
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
                     @Override
                     public void run() {
-                        mViewPager.setAdapter(new ComicPagerAdapter());
+                        mViewPager.setAdapter(new ViewPager2Adapter());
                         mPageSeekBar.setMax(mPageCount - 1);
 
                         int curPage = (mComic != null) ? mComic.getCurrentPage() : 0;
-                        setCurrentPage(Math.max(curPage, 1));
+                        setCurrentPage(Math.max(curPage, 1), false);
 
-                        view.findViewById(R.id.progressPlaceholder).setVisibility(View.GONE);
                         mViewPager.setVisibility(View.VISIBLE);
 
                         TextView titleTextView = getActivity().findViewById(R.id.action_bar_title);
-                        titleTextView.append((titleTextView.getText().toString().isEmpty() ? "" : "  ")+"[" + mParser.getType() + "]");
+                        titleTextView.append((titleTextView.getText().toString().isEmpty() ? "" : "  ") + "[" + mParser.getType() + "]");
                     }
                 });
             }
@@ -458,9 +532,11 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
 
     @Override
     public void onPrepareOptionsMenu(@NonNull Menu menu) {
+        // called only once for all and after that only for overflow menu
         super.onPrepareOptionsMenu(menu);
 
-        // TODO: fix up page export permission bs
+        // better done in onCreateOptionsMenu(),
+        // during runtime changes call getActivity().invalidateOptionsMenu()
         //menu.findItem(R.id.menu_reader_export).setVisible(BuildConfig.DEBUG);
     }
 
@@ -471,27 +547,37 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
         inflater.inflate(R.menu.reader, menu);
 
         // hack to enable icons in overflow menu
-        if(menu instanceof MenuBuilder){
-            ((MenuBuilder)menu).setOptionalIconsVisible(true);
+        if (menu instanceof MenuBuilder) {
+            ((MenuBuilder) menu).setOptionalIconsVisible(true);
         }
 
-        switch (mPageViewMode) {
-            case ASPECT_FILL:
-                menu.findItem(R.id.view_mode_aspect_fill).setChecked(true);
-                break;
-            case ASPECT_FIT:
-                menu.findItem(R.id.view_mode_aspect_fit).setChecked(true);
-                break;
-            case FIT_WIDTH:
-                menu.findItem(R.id.view_mode_fit_width).setChecked(true);
-                break;
-        }
-
-        if (mIsLeftToRight) {
+        // reading mode: set state and menu icon
+        if (mIsVertical) {
+            menu.findItem(R.id.reading_top_to_bottom).setChecked(true);
+        } else if (mIsLeftToRight) {
             menu.findItem(R.id.reading_left_to_right).setChecked(true);
         } else {
             menu.findItem(R.id.reading_right_to_left).setChecked(true);
         }
+        int icon = mIsLeftToRight ? R.drawable.ic_bookarrow_ltr_18 : R.drawable.ic_bookarrow_rtl_18;
+        if (mIsVertical) icon = R.drawable.ic_bookarrow_ttb_18;
+        menu.findItem(R.id.menu_reader_reading).setIcon(icon);
+
+        // view mode: set state and menu icon
+        int viewMode = R.id.view_mode_aspect_fill;
+        for (Map.Entry<Integer, Constants.PageViewMode> entry : RESOURCE_VIEW_MODE.entrySet()) {
+            if (entry.getValue().equals(mPageViewMode))
+                menu.findItem(entry.getKey()).setChecked(true);
+        }
+        MenuItem viewModeItem = menu.findItem(R.id.menu_reader_view_mode);
+        if (mPageViewMode == Constants.PageViewMode.ASPECT_FILL)
+            viewModeItem.setIcon(R.drawable.ic_zoom_out_18);
+        else if (mPageViewMode == Constants.PageViewMode.ASPECT_FIT)
+            viewModeItem.setIcon(R.drawable.ic_fit_page_aspect_18);
+        else if (mPageViewMode == Constants.PageViewMode.FIT_WIDTH)
+            viewModeItem.setIcon(R.drawable.ic_fit_page_width_18);
+        else if (mPageViewMode == Constants.PageViewMode.FIT_HEIGHT)
+            viewModeItem.setIcon(R.drawable.ic_fit_page_height_18);
     }
 
     @Override
@@ -544,7 +630,8 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-        return mGestureDetector.onTouchEvent(event);
+        mGestureDetector.onTouchEvent(event);
+        return true;
     }
 
     public int getCurrentPage() {
@@ -560,51 +647,78 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         SharedPreferences.Editor editor = MainApplication.getPreferences().edit();
-        switch (item.getItemId()) {
-            case R.id.view_mode_aspect_fill:
-            case R.id.view_mode_aspect_fit:
-            case R.id.view_mode_fit_width:
-                item.setChecked(true);
-                mPageViewMode = RESOURCE_VIEW_MODE.get(item.getItemId());
-                editor.putInt(Constants.SETTINGS_PAGE_VIEW_MODE, mPageViewMode.native_int);
-                editor.apply();
-                updatePageViews(mViewPager);
-                break;
-            case R.id.reading_left_to_right:
-            case R.id.reading_right_to_left:
-                item.setChecked(true);
-                int page = getCurrentPage();
-                mIsLeftToRight = (item.getItemId() == R.id.reading_left_to_right);
-                editor.putBoolean(Constants.SETTINGS_READING_LEFT_TO_RIGHT, mIsLeftToRight);
-                editor.apply();
-                setCurrentPage(page, false);
-                mViewPager.getAdapter().notifyDataSetChanged();
-                updateSeekBar();
-                break;
-            case R.id.rotate:
-                // add 90 degree to current page rotation
-                int pos = getCurrentPage()-1;
-                Integer degrees = mRotations.get(pos);
-                if (degrees == null)
-                    degrees = 0;
-                degrees += 90;
-                mRotations.put(pos,degrees);
-                // apply rotation during (re)load
-                mViewPager.getAdapter().notifyDataSetChanged();
-                //updatePageViews(mViewPager,pos,true);
-                // work in progress,
-                // rotating imageview does not reset boundings unfortunately, dunno howto fix for now
-                // also touch events are registered to the imageview and rotate with the image, not good
-                //rotatePage(pos, degrees);
-                break;
-            case R.id.menu_reader_export:
-                exportCurrentPage();
-                break;
+
+        if (Arrays.asList(
+                R.id.view_mode_aspect_fill,
+                R.id.view_mode_aspect_fit,
+                R.id.view_mode_fit_width,
+                R.id.view_mode_fit_height).contains(item.getItemId())) {
+
+            item.setChecked(true);
+            mPageViewMode = RESOURCE_VIEW_MODE.get(item.getItemId());
+            editor.putInt(Constants.SETTINGS_PAGE_VIEW_MODE, mPageViewMode.native_int);
+            editor.apply();
+            updatePageViews(mViewPager);
+            // refresh menu to update icon
+            getActivity().invalidateOptionsMenu();
+            return true;
         }
-        return super.onOptionsItemSelected(item);
+
+        if (Arrays.asList(
+                R.id.reading_left_to_right,
+                R.id.reading_right_to_left,
+                R.id.reading_top_to_bottom).contains(item.getItemId())) {
+
+            item.setChecked(true);
+            int page = getCurrentPage();
+            mIsLeftToRight = (item.getItemId() != R.id.reading_right_to_left);
+            mIsVertical = (item.getItemId() == R.id.reading_top_to_bottom);
+            // memorize
+            editor.putBoolean(Constants.SETTINGS_READING_LEFT_TO_RIGHT, mIsLeftToRight);
+            editor.putBoolean(Constants.SETTINGS_READING_VERTICAL, mIsVertical);
+            editor.apply();
+
+            int orientation = mIsVertical ?
+                    ViewPager2.ORIENTATION_VERTICAL : ViewPager2.ORIENTATION_HORIZONTAL;
+            mViewPager.setOrientation(orientation);
+
+            // update slider (ltr vs rtl)
+            setCurrentPage(page, false);
+
+            // update menu icon
+            getActivity().invalidateOptionsMenu();
+
+            return true;
+        }
+
+        if (item.getItemId() == R.id.rotate) {
+            // add 90 degree to current page rotation
+            int pos = getCurrentPage() - 1;
+            Integer degrees = mRotations.get(pos);
+            if (degrees == null)
+                degrees = 0;
+            degrees += 90;
+            mRotations.put(pos, degrees);
+            // apply rotation during (re)load
+            mViewPager.getAdapter().notifyDataSetChanged();
+            //updatePageViews(mViewPager,pos,true);
+            // work in progress,
+            // rotating imageview does not reset boundings unfortunately, dunno howto fix for now
+            // also touch events are registered to the imageview and rotate with the image, not good
+            //rotatePage(pos, degrees);
+            return true;
+        }
+
+        if (item.getItemId() == R.id.menu_reader_export) {
+            exportCurrentPage();
+            return true;
+        }
+
+        return false;
     }
 
-    private void rotatePage(int pos, int degrees){
+    /*
+    private void rotatePage(int pos, int degrees) {
         try {
             MyTarget t = mTargets.get(pos);
             View v = t.mLayout.get();
@@ -615,6 +729,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
             mViewPager.getAdapter().notifyDataSetChanged();
         }
     }
+    */
 
     private void setCurrentPage(int page) {
         setCurrentPage(page, true);
@@ -706,7 +821,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
                     }
                 }
                 final String text = metaText;
-                getActivity().runOnUiThread(new Runnable() {
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
                     @Override
                     public void run() {
                         // just in case the above took too long and user
@@ -724,62 +839,55 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
         }).start();
     }
 
-    private class ComicPagerAdapter extends PagerAdapter {
+    private class ViewPager2Adapter extends RecyclerView.Adapter {
 
-         @Override
-        public int getItemPosition(Object object) {
-            return POSITION_NONE;
+        public ViewPager2Adapter() {
+            super();
+            setHasStableIds(false);
         }
 
         @Override
-        public int getCount() {
-            return mPageCount;
+        public long getItemId(int position) {
+            return position;
         }
 
+        @NonNull
         @Override
-        public boolean isViewFromObject(View view, Object o) {
-            return view == o;
-        }
-
-        @Override
-        public Object instantiateItem(ViewGroup container, int position) {
+        public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             final LayoutInflater inflater = (LayoutInflater) getActivity()
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            View layout = inflater.inflate(R.layout.fragment_reader_page, parent, false);
+            layout.findViewById(R.id.touchInterceptor).setOnTouchListener(ReaderFragment.this);
 
-            View layout = inflater.inflate(R.layout.fragment_reader_page, container, false);
+            return new PageViewHolder(layout);
+        }
 
-            PageImageView pageImageView = (PageImageView) layout.findViewById(R.id.pageImageView);
+        @Override
+        public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+            ((PageViewHolder) holder).loadPage(position);
+        }
+
+        @Override
+        public int getItemCount() {
+            return mPageCount;
+        }
+    }
+
+    private class PageViewHolder extends RecyclerView.ViewHolder {
+        public PageViewHolder(@NonNull View itemView) {
+            super(itemView);
+        }
+
+        public void loadPage(int position) {
+            PageImageView pageImageView = (PageImageView) itemView.findViewById(R.id.pageImageView);
+            pageImageView.setVisibility(View.INVISIBLE);
             if (mPageViewMode == Constants.PageViewMode.ASPECT_FILL)
                 pageImageView.setTranslateToRightEdge(!mIsLeftToRight);
             pageImageView.setViewMode(mPageViewMode);
-            pageImageView.setOnTouchListener(ReaderFragment.this);
 
-            container.addView(layout);
-
-            MyTarget t = new MyTarget(layout, position);
+            MyTarget t = new MyTarget(itemView, position);
             loadImage(t);
             mTargets.put(position, t);
-
-            layout.setTag(Integer.valueOf(position));
-            return layout;
-        }
-
-        @Override
-        public void destroyItem(ViewGroup container, int position, Object object) {
-            View layout = (View) object;
-            mPicasso.cancelRequest(mTargets.get(position));
-            mTargets.delete(position);
-            container.removeView(layout);
-
-            ImageView iv = (ImageView) layout.findViewById(R.id.pageImageView);
-            Drawable drawable = iv.getDrawable();
-            if (drawable instanceof BitmapDrawable) {
-                BitmapDrawable bd = (BitmapDrawable) drawable;
-                Bitmap bm = bd.getBitmap();
-                if (bm != null) {
-                    bm.recycle();
-                }
-            }
         }
     }
 
@@ -788,7 +896,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
         if (mIsLeftToRight) {
             pos = t.position;
         } else {
-            pos = mViewPager.getAdapter().getCount() - t.position - 1;
+            pos = mViewPager.getAdapter().getItemCount() - t.position - 1;
         }
 
         RequestCreator rc = mPicasso.load(mComicHandler.getPageUri(pos))
@@ -971,20 +1079,31 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
             return false;
         }
 
+        float lastX = 0;
+
         /**
          * Drag from top edge shows toolbar/seekbar
          */
         @Override
         public boolean onScroll(@Nullable MotionEvent e1, @NonNull MotionEvent e2, float distanceX, float distanceY) {
+            if (e1 == null)
+                return false;
+
+            int offset = Utils.getGestureOffsetTop(mPageNavLayout);
             float diffY = e2.getY() - e1.getY();
             float startY = e1.getY();
-            //Log.i("scroll2", startY + " / " + diffY );
-            if (isFullscreen() && startY <= 30 && diffY > 70) {
-                setFullscreen( false );
+            if (isFullscreen() && startY <= offset && diffY >= Utils.dpToPx(getContext(), 20)) {
+                setFullscreen(false);
                 return true;
             }
 
-            return super.onScroll(e1, e2, distanceX, distanceY);
+            return false;
+        }
+
+        @Override
+        public boolean onFling(@Nullable MotionEvent e1, @NonNull MotionEvent e2, float velocityX, float velocityY) {
+            Log.i("Fling", "Fling");
+            return false;
         }
     }
 
@@ -997,15 +1116,20 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
             float diffY = e2.getY() - e1.getY();
             //float startY = e1.getY();
             //Log.i("scroll3", startY + " / " + diffY );
-            if ( diffY <= -50 ) {
-                setFullscreen( true );
+            if (diffY <= -50) {
+                setFullscreen(true);
             }
 
             return true;
         }
     }
 
+    // TODO: allow display rotation without actual reloading again
     private void updatePageViews(ViewGroup parentView) {
+        mViewPager.getAdapter().notifyDataSetChanged();
+//        mViewPager.invalidate();
+//        mViewPager.requestLayout();
+/*
         for (int i = 0; i < parentView.getChildCount(); i++) {
             final View child = parentView.getChildAt(i);
             if (child instanceof ViewGroup) {
@@ -1017,6 +1141,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
                 view.setViewMode(mPageViewMode);
             }
         }
+*/
     }
 
     private ActionBar getActionBar() {
@@ -1186,30 +1311,28 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
     }
 
     private void exportCurrentPage() {
-        exportCurrentPage(true );
+        exportCurrentPage(true);
     }
 
-    private void exportCurrentPage( boolean requestPermission ) {
+    private void exportCurrentPage(boolean requestPermission) {
         int pageNum = getCurrentPage();
         int index = pageNum - 1;
         File folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-        File file = new File(folder,
-                (mFile.isDirectory() ? mFile.getName() : Utils.removeExtensionIfAny(mFile.getName())) +
-                        ".page" + pageNum + ".jpg");
+        String name = "unknown";
+        if (mFile != null)
+            name = mFile.isDirectory() ? mFile.getName() : Utils.removeExtensionIfAny(mFile.getName());
+        else if (mUri != null && mUri.getLastPathSegment() != null)
+            name = Utils.removeExtensionIfAny(mUri.getLastPathSegment());
 
+        File file = new File(folder, name + ".page" + pageNum + ".jpg");
         InputStream is = null;
         OutputStream os = null;
         try {
-            if (folder==null) {
-                Utils.toast("Cannot determine Downloads folder.", getContext());
+            if (folder == null) {
+                Utils.toast("Cannot determine Download folder.", getContext());
                 return;
-            }
-            else if (!folder.isDirectory() && !folder.mkdirs()) {
-                Utils.toast("Couldn't create Downloads folder.", getContext());
-                return;
-            }
-            else if (mFile==null) {
-                Utils.toast("Not a file", getContext());
+            } else if (!folder.isDirectory() && !folder.mkdirs()) {
+                Utils.toast("Couldn't create Download folder.", getContext());
                 return;
             }
 
@@ -1248,7 +1371,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
                 // no biggie, catch and gracefully recompress below
                 try {
                     // if for some reason mediastore does return null, fallback to direct write
-                    if (imageUri!=null)
+                    if (imageUri != null)
                         os = getContext().getContentResolver().openOutputStream(imageUri);
                         // default for Android9-
                     else
@@ -1261,7 +1384,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
                     //Utils.copyToFile(((Utils.ByteArrayOutputToInputStream)os).getInputStream(), file);
                     Utils.copyToOutputStream(buffer.getInputStream(), os);
                     done = true;
-                } catch (Throwable t){
+                } catch (Throwable t) {
                     Log.e("ReaderFragment", "reuse jpeg failed", t);
                 } finally {
                     Utils.close(is);
@@ -1271,9 +1394,9 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
             // alternatively we compress the bitmap of the PageImageView
             if (!done) {
                 // if for some reason mediastore does return null, fallback to direct write
-                if (imageUri!=null)
+                if (imageUri != null)
                     os = getContext().getContentResolver().openOutputStream(imageUri);
-                // default for Android9-
+                    // default for Android9-
                 else
                     os = new FileOutputStream(file);
 
@@ -1299,7 +1422,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
             File shortFile = new File(folder.getName(), file.getName());
             Utils.toast("Exported as '" + shortFile.toString() + "'", getContext());
             // make sure file is scanned so it is properly listed in galleries
-            MediaScannerConnection.scanFile( getContext(),
+            MediaScannerConnection.scanFile(getContext(),
                     new String[]{file.toString()}, null, null);
         } catch (Exception e) {
             Utils.toast(e.getMessage(), getContext());
@@ -1310,4 +1433,44 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
         }
     }
 
+    // TODO: remove, just an example. currently unused.
+    public class DepthPageTransformer implements ViewPager2.PageTransformer {
+        private static final float MIN_SCALE = 0.75f;
+
+        public void transformPage(View view, float position) {
+            int pageWidth = view.getWidth();
+
+            if (position < -1) { // [-Infinity,-1)
+                // This page is way off-screen to the left.
+                view.setAlpha(0f);
+
+            } else if (position <= 0) { // [-1,0]
+                // Use the default slide transition when moving to the left page.
+                view.setAlpha(1f);
+                view.setTranslationX(0f);
+                view.setTranslationZ(0f);
+                view.setScaleX(1f);
+                view.setScaleY(1f);
+
+            } else if (position <= 1) { // (0,1]
+                // Fade the page out.
+                view.setAlpha(1 - position);
+
+                // Counteract the default slide transition.
+                view.setTranslationX(pageWidth * -position);
+                // Move it behind the left page
+                view.setTranslationZ(-1f);
+
+                // Scale the page down (between MIN_SCALE and 1).
+                float scaleFactor = MIN_SCALE
+                        + (1 - MIN_SCALE) * (1 - Math.abs(position));
+                view.setScaleX(scaleFactor);
+                view.setScaleY(scaleFactor);
+
+            } else { // (1,+Infinity]
+                // This page is way off-screen to the right.
+                view.setAlpha(0f);
+            }
+        }
+    }
 }

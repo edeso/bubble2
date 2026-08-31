@@ -43,7 +43,7 @@ public class ReaderActivity extends AppCompatActivity {
             );
         }
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.layout_reader);
+        setContentView(BuildConfig.DEBUG ? R.layout.layout_reader_debug : R.layout.layout_reader);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_reader);
         setSupportActionBar(toolbar);
@@ -122,5 +122,4 @@ public class ReaderActivity extends AppCompatActivity {
         super.onBackPressed();
         finish();
     }
-
 }

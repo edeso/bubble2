@@ -14,6 +14,7 @@ import android.os.Build;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowManager;
 import android.view.WindowMetrics;
@@ -24,6 +25,8 @@ import androidx.annotation.StyleRes;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.view.ContextThemeWrapper;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import com.gemalto.jp2.JP2Decoder;
 import com.nkanaev.comics.MainApplication;
 import com.nkanaev.comics.R;
@@ -47,56 +50,45 @@ public final class Utils {
         return Math.round(displayMetrics.widthPixels / displayMetrics.density);
     }
 
-    public static boolean isIceCreamSandwitchOrLater() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH;
+    public static int getDeviceHeightPixels() {
+        DisplayMetrics displayMetrics = MainApplication.getAppContext().getResources().getDisplayMetrics();
+        return displayMetrics.heightPixels;
     }
 
-    public static boolean isHoneycombOrLater() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB;
+    public static int getDeviceWidth(Context context) {
+        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+
+        // the old way
+        int width = displayMetrics.widthPixels;
+        float density = displayMetrics.density;
+        // the "new" way, since Android 10
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+            WindowMetrics windowMetrics = windowManager.getCurrentWindowMetrics();
+            Insets insets = windowMetrics.getWindowInsets()
+                    .getInsetsIgnoringVisibility(WindowInsets.Type.systemBars());
+            width = windowMetrics.getBounds().width();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+                density = windowMetrics.getDensity();
+
+            width = width - insets.left - insets.right;
+        }
+
+        int value = Math.round(width / density);
+        return value;
     }
 
-    public static boolean isHoneycombMR1orLater() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1;
+    public static int dpToPx(Context context, int dp) {
+        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+        return Math.round(dp * displayMetrics.density);
     }
 
-    public static boolean isJellyBeanMR1orLater() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1;
-    }
-
-    public static boolean isKitKatOrLater() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
-    }
-
-    public static boolean isLollipopOrLater() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
-    }
-
-    public static boolean isMarshmallowOrLater() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
-    }
-
-    // FileChannel
-    public static boolean isNougatOrLater() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N;
-    }
-
-    // java.nio.path
-    public static boolean isOreoOrLater() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
-    }
-
-    // full edge-to-edge support
-    public static boolean isQOrLater() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q;
-    }
-
-    public static boolean isROrLater() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.R;
-    }
-
-    // forced edge-to-edge
-    public static boolean isVanillaIceCreamOrLater() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM;
+    public static int getGestureOffsetTop(View view) {
+        // statusbar used to be 25dp in height
+        int minOffset = Utils.dpToPx(view.getContext(), 25);
+        WindowInsetsCompat wic = ViewCompat.getRootWindowInsets(view);
+        int systemOffset = wic.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.systemGestures() | WindowInsetsCompat.Type.statusBars()).top;
+        return Math.max(minOffset, systemOffset);
     }
 
     public static int getHeapSize(Context context) {
@@ -161,7 +153,7 @@ public final class Utils {
         return inputStreamStartsWith(is, bytesIn, 0);
     }
 
-    private static boolean inputStreamStartsWith(InputStream is, byte[] bytesIn, int offset){
+    private static boolean inputStreamStartsWith(InputStream is, byte[] bytesIn, int offset) {
         try {
             if (bytesIn == null)
                 throw new IllegalArgumentException("bytesIn must not be Null");
@@ -173,9 +165,9 @@ public final class Utils {
             is.skip(offset);
             is.read(isHeader);
             is.reset();
-            return Arrays.equals(bytesIn,isHeader);
+            return Arrays.equals(bytesIn, isHeader);
         } catch (Exception e) {
-            Log.e("Utils.isRarStream","",e);
+            Log.e("Utils.isRarStream", "", e);
         }
         return false;
     }
@@ -198,7 +190,7 @@ public final class Utils {
     }
 
     public static boolean isPdf(String filename) {
-        return filename.matches("(?i).*\\.(pdf)$" );
+        return filename.matches("(?i).*\\.(pdf)$");
     }
 
     public static boolean isZip(String filename) {
@@ -259,7 +251,8 @@ public final class Utils {
     static List<String> mimeTypesSevenZ = Arrays.asList("application/x-cb7", "application/x-7z-compressed");
     static List<String> mimeTypesTar = Arrays.asList("application/x-cbt", "application/x-compressed-tar", "application/x-bzip-compressed-tar", "application/x-tar", "application/x-gtar");
     static List<String> mimeTypesPdf = Arrays.asList("application/pdf", "application/x-pdf");
-    public static String dummyFileNameFromMimeType(String mimeType){
+
+    public static String dummyFileNameFromMimeType(String mimeType) {
         mimeType = mimeType.toLowerCase();
         if (mimeTypesZip.contains(mimeType))
             return "dummy.zip";
@@ -274,41 +267,13 @@ public final class Utils {
         return null;
     }
 
-    public static int getDeviceWidth(Context context) {
-        DisplayMetrics displayMetrics = MainApplication.getAppContext().getResources().getDisplayMetrics();
-
-        // the old way
-        int width = displayMetrics.widthPixels;
-        float density = displayMetrics.density;
-        // the new way, since Android 10
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            WindowManager windowManager = (WindowManager) MainApplication.getAppContext().getSystemService(Context.WINDOW_SERVICE);
-            WindowMetrics windowMetrics = windowManager.getCurrentWindowMetrics();
-            Insets insets = windowMetrics.getWindowInsets()
-                    .getInsetsIgnoringVisibility(WindowInsets.Type.systemBars());
-            width = windowMetrics.getBounds().width();
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-                density = windowMetrics.getDensity();
-
-            width = width - insets.left - insets.right;
-        }
-
-        int value = Math.round(width / density);
-        return value;
-    }
-
-    public static int getDeviceHeightPixels() {
-        DisplayMetrics displayMetrics = MainApplication.getAppContext().getResources().getDisplayMetrics();
-        return displayMetrics.heightPixels;
-    }
-
     // a virtual limit based on the display pixel dimensions
-    public static int getMaxPageSize(){
+    public static int getMaxPageSize() {
         return Math.round(1.25f * getMaxDisplayWidth());
     }
 
     // either display pixel width or height, which ever is bigger
-    public static int getMaxDisplayWidth(){
+    public static int getMaxDisplayWidth() {
         DisplayMetrics displayMetrics = MainApplication.getAppContext().getResources().getDisplayMetrics();
         int w = displayMetrics.widthPixels;
         int h = displayMetrics.heightPixels;
@@ -358,12 +323,12 @@ public final class Utils {
         return 1024 * 1024 * memoryClass / percentage;
     }
 
-    private static File getCacheFolder(){
+    private static File getCacheFolder() {
         Context context = MainApplication.getAppContext();
         File dir = context.getExternalCacheDir();
         if (dir == null)
             dir = context.getCacheDir();
-        if (dir==null)
+        if (dir == null)
             throw new RuntimeException("Couldn't find cache dir!");
         return dir;
     }
@@ -371,16 +336,11 @@ public final class Utils {
     public static File getCoverCacheFile(Comic c) {
         CRC32 crc = new CRC32();
         crc.update(c.getFile().toString().getBytes());
-        return getCoverCacheFile(String.format("%08X", crc.getValue()),"jpg");
-    }
-
-    private static File getCoverCacheFile(String identifier, String extension) {
         File dir = getCacheFolder();
-        return new File(dir, "cover-" + identifier + (extension != null && !extension.isEmpty() ? "." + extension : ""));
+        return new File(dir, "cover-" + String.format("%08X", crc.getValue()) + ".jpg" );
     }
-
     public static void deleteCoverCacheFile(Comic comic) {
-        File coverCacheFile = getCoverCacheFile(comic.getFile().getAbsolutePath(), "jpg");
+        File coverCacheFile = getCoverCacheFile(comic);
         coverCacheFile.delete();
     }
 
@@ -408,7 +368,7 @@ public final class Utils {
 
     public static void copyToFile(InputStream inStream, File file) throws IOException {
         OutputStream outStream = new FileOutputStream(file);
-        copyToOutputStream(inStream,outStream);
+        copyToOutputStream(inStream, outStream);
     }
 
     public static void copyToOutputStream(InputStream inStream, OutputStream outStream) throws IOException {
@@ -436,7 +396,7 @@ public final class Utils {
         try {
             c.close();
         } catch (final Throwable t) {
-            Log.e("Bubble2","Utils.close(Closeable)",t);
+            Log.e("Bubble2", "Utils.close(Closeable)", t);
         }
     }
 
@@ -456,7 +416,7 @@ public final class Utils {
             }
             m.invoke(o);
         } catch (final Throwable t) {
-            Log.e("Bubble2","Utils.close(Object)",t);
+            Log.e("Bubble2", "Utils.close(Object)", t);
         }
     }
 
@@ -473,24 +433,24 @@ public final class Utils {
     }
 
     // remove probably stale folders, exempt files (covers)
-    public static void cleanCacheDir(){
+    public static void cleanCacheDir() {
         final List<Comic> comics = Storage.getStorage(MainApplication.getAppContext()).listComics();
-        new Thread(){
+        new Thread() {
             @Override
             public void run() {
                 Set covers = new HashSet<String>(comics.size());
-                for (Comic c : comics ) {
+                for (Comic c : comics) {
                     covers.add(Utils.getCoverCacheFile(c).getName());
                 }
                 comics.clear();
                 File cacheDir = getCacheFolder();
                 File[] files = cacheDir.listFiles();
-                if (files!=null)
-                    for (File f: files) {
+                if (files != null)
+                    for (File f : files) {
                         // leftover unpacked comics
                         if (f.isDirectory())
-                            rmDir(f,true);
-                        // covers without matching db book entry
+                            rmDir(f, true);
+                            // covers without matching db book entry
                         else if (!covers.contains(f.getName())) {
                             f.delete();
                         }
@@ -525,7 +485,7 @@ public final class Utils {
         ArrayList<File> entries = new ArrayList();
         for (int i = 0; externalFilesDirs != null && i < externalFilesDirs.length; i++) {
             File entry = externalFilesDirs[i];
-            if (entry!=null)
+            if (entry != null)
                 entries.add(entry);
         }
         return entries.toArray(new File[0]);
@@ -545,9 +505,9 @@ public final class Utils {
         dialog.show();
     }
 
-    public static String appendSlashIfMissing(String path){
+    public static String appendSlashIfMissing(String path) {
         // don't treat empty strings
-        if (path==null || path.equals(""))
+        if (path == null || path.equals(""))
             return path;
 
         if (!path.endsWith("/"))
@@ -565,7 +525,7 @@ public final class Utils {
         return name;
     }
 
-    public static @ColorInt int getThemeColor(@AttrRes int resid, @StyleRes int themeid){
+    public static @ColorInt int getThemeColor(@AttrRes int resid, @StyleRes int themeid) {
         TypedValue typedValue = new TypedValue();
         Resources.Theme theme = new ContextThemeWrapper(MainApplication.getAppContext(), themeid).getTheme();
         if (theme.resolveAttribute(resid, typedValue, true)) {
@@ -576,29 +536,32 @@ public final class Utils {
     }
 
     /**
-     *  a helper method to measure time frames in milliseconds
+     * a helper method to measure time frames in milliseconds
+     *
      * @return current time in milliseconds
      */
-    public static long now(){
+    public static long now() {
         return System.currentTimeMillis();
     }
 
     /**
-     *  a helper method to measure time frames in milliseconds
+     * a helper method to measure time frames in milliseconds
+     *
      * @param i time in milliseconds
      * @return milliseconds since time
      */
-    public static long milliSecondsSince( long i ){
+    public static long milliSecondsSince(long i) {
         return System.currentTimeMillis() - i;
     }
 
     /**
      * a helper method to nicely format the above output e.g. 12046ms -> 12.05s
+     *
      * @param i milliseconds
      * @return eg. "1.05" for a difference of 1047ms
      */
-    public static String secondsSinceString( long i ){
-        return String.format("%.2f", milliSecondsSince(i)/1000f);
+    public static String secondsSinceString(long i) {
+        return String.format("%.2f", milliSecondsSince(i) / 1000f);
     }
 
     public static double getGLEsVersion() {
@@ -608,13 +571,13 @@ public final class Utils {
 
     private static int glMaxTextureSize = -1;
 
-    public static int glMaxTextureSize(){
+    public static int glMaxTextureSize() {
         if (glMaxTextureSize < 0)
             glMaxTextureSize = isJellyBeanMR1orLater() ? gl20MaxTextureSize() : gl10MaxTextureSize();
         return glMaxTextureSize;
     }
 
-    public static int gl20MaxTextureSize(){
+    public static int gl20MaxTextureSize() {
         EGLDisplay dpy = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY);
         int[] vers = new int[2];
         EGL14.eglInitialize(dpy, vers, 0, vers, 1);
@@ -664,7 +627,7 @@ public final class Utils {
         return maxSize[0];
     }
 
-    public static int gl10MaxTextureSize(){
+    public static int gl10MaxTextureSize() {
         EGL10 egl = (EGL10) javax.microedition.khronos.egl.EGLContext.getEGL();
 
         javax.microedition.khronos.egl.EGLDisplay dpy = egl.eglGetDisplay(EGL10.EGL_DEFAULT_DISPLAY);
@@ -752,7 +715,7 @@ public final class Utils {
     private static int MAXMEMORYSIZE = 0;
 
     public static int bitmapMaxMemorySize() {
-        if (MAXMEMORYSIZE>0)
+        if (MAXMEMORYSIZE > 0)
             return MAXMEMORYSIZE;
 
         // default is 100MB in
@@ -773,20 +736,19 @@ public final class Utils {
         long length = 0;
         File[] files = folder.listFiles();
 
-        for (int i = 0; files !=null && i < files.length; i++) {
+        for (int i = 0; files != null && i < files.length; i++) {
             if (files[i].isFile()) {
                 length += files[i].length();
-            }
-            else if (recursive) {
-                length += getFolderSize(files[i],recursive);
+            } else if (recursive) {
+                length += getFolderSize(files[i], recursive);
             }
         }
         return length;
     }
 
-    public static void disablePendingTransition(Activity activity){
-        if (activity!=null)
-            activity.overridePendingTransition(0,0);
+    public static void disablePendingTransition(Activity activity) {
+        if (activity != null)
+            activity.overridePendingTransition(0, 0);
     }
 
     public static void toast(CharSequence message) {
@@ -822,4 +784,57 @@ public final class Utils {
         }
         return false;
     }
+
+    public static boolean isIceCreamSandwitchOrLater() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH;
+    }
+
+    public static boolean isHoneycombOrLater() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB;
+    }
+
+    public static boolean isHoneycombMR1orLater() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1;
+    }
+
+    public static boolean isJellyBeanMR1orLater() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1;
+    }
+
+    public static boolean isKitKatOrLater() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
+    }
+
+    public static boolean isLollipopOrLater() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
+    }
+
+    public static boolean isMarshmallowOrLater() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
+    }
+
+    // FileChannel
+    public static boolean isNougatOrLater() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N;
+    }
+
+    // java.nio.path
+    public static boolean isOreoOrLater() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
+    }
+
+    // full edge-to-edge support
+    public static boolean isQOrLater() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q;
+    }
+
+    public static boolean isROrLater() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.R;
+    }
+
+    // forced edge-to-edge
+    public static boolean isVanillaIceCreamOrLater() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM;
+    }
 }
+

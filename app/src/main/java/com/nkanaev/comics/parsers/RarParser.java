@@ -63,7 +63,7 @@ public class RarParser extends AbstractParser {
     }
 
     private String getName(FileHeader header) {
-        return header.isUnicode() ? header.getFileNameW() : header.getFileNameString();
+        return header.getFileName();
     }
 
     @Override

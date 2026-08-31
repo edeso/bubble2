@@ -753,6 +753,11 @@ public class LibraryBrowserFragment extends Fragment
     }
 
     private Comic getComicAtPosition(int position) {
+        // make sure there is a comic at that position
+        int type = getItemViewTypeAtPosition(position);
+        if (type != ITEM_VIEW_TYPE_COMIC)
+            return null;
+
         Comic comic;
         if (hasRecent()) {
             if (position > 0 && position < mRecentItems.size() + 1)
@@ -914,9 +919,21 @@ public class LibraryBrowserFragment extends Fragment
             int type = getItemViewTypeAtPosition(position);
             if (type == ITEM_VIEW_TYPE_COMIC) {
                 Comic comic = getComicAtPosition(position);
-                return comic.getId();
+                // ids need to be unique, as recents holds the some of the
+                // same comics as the list we magicalize unique ones
+                if (hasRecent() && position < mRecentItems.size() + 1)
+                        return comic.getId();
+                return comic.getId()*100;
             }
             return type;
+        }
+
+        public void notifyItemChanged(Comic c){
+            for (int i = 0; i < getItemCount(); i++) {
+                Comic comicAtPosition = getComicAtPosition(i);
+                if (c.equals(comicAtPosition))
+                    notifyItemChanged(i);
+            }
         }
 
         @Override
@@ -1034,7 +1051,7 @@ public class LibraryBrowserFragment extends Fragment
             Uri uri = LocalCoverHandler.getComicCoverUri(comic);
             //Long lastCacheStamp = mCache.get(uri);
             //if (lastCacheStamp != null && !lastCacheStamp.equals(mCacheStamp))
-            //   mPicasso.invalidate(uri);
+            //mPicasso.invalidate(uri);
             mPicasso.load(uri).into(mComicImageView);
             //mCache.put(uri, mCacheStamp);
 
@@ -1062,8 +1079,12 @@ public class LibraryBrowserFragment extends Fragment
             // just one menu item reset just now
             Storage.getStorage(getContext()).resetBook(mComic.getId());
             Utils.deleteCoverCacheFile(mComic);
-            // complete reload (recents, sorting etc.)
+            // invalidate picasso cache for cover
+            Uri uri = LocalCoverHandler.getComicCoverUri(mComic);
+            mPicasso.invalidate(uri);
+            // reload (remove from recents)
             getComics();
+
             return true;
         }
 

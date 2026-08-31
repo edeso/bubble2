@@ -3,9 +3,15 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
-        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+    <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/progressPlaceholder"
+            android:visibility="visible">
+        <include layout="@layout/progress_image"/>
+    </RelativeLayout>
     <FrameLayout
             android:id="@+id/content_frame_reader"
             android:layout_width="match_parent"

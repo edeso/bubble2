@@ -37,4 +37,9 @@
             </group>
         </menu>
     </item>
+    <item android:id="@+id/draw_gestures"
+          android:title="Show Gestures"
+          android:checkable="true"
+          android:visible="false"
+          app:showAsAction="never"/>
 </menu>

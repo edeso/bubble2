@@ -20,6 +20,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.navigation.NavigationView.OnNavigationItemSelectedListener;
+import com.nkanaev.comics.BuildConfig;
 import com.nkanaev.comics.R;
 import com.nkanaev.comics.fragment.AboutFragment;
 import com.nkanaev.comics.fragment.BrowserFragment;
@@ -46,7 +47,8 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        super.setContentView(R.layout.layout_main);
+        super.setContentView(
+                BuildConfig.DEBUG ? R.layout.layout_main_debug : R.layout.layout_main);
         super.onCreate(savedInstanceState);
 
         PACKAGE_NAME = getApplicationContext().getPackageName();

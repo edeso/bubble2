@@ -6,14 +6,13 @@ import android.graphics.Point;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import androidx.core.view.ViewCompat;
 import android.util.AttributeSet;
 import android.view.*;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.Interpolator;
-import android.widget.ImageView;
 import android.widget.OverScroller;
+import androidx.core.view.ViewCompat;
 import com.nkanaev.comics.Constants;
 
 public class PageImageView extends androidx.appcompat.widget.AppCompatImageView {
@@ -72,11 +71,11 @@ public class PageImageView extends androidx.appcompat.widget.AppCompatImageView 
         super.setOnTouchListener(new OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                boolean b1 = mScaleGestureDetector.onTouchEvent(event);
-                boolean b2 = mDragGestureDetector.onTouchEvent(event);
                 boolean b3 = false;
                 if (mOuterTouchListener != null)
                     b3 = mOuterTouchListener.onTouch(v, event);
+                boolean b1 = mScaleGestureDetector.onTouchEvent(event);
+                boolean b2 = mDragGestureDetector.onTouchEvent(event);
                 return true;
             }
         });
@@ -94,6 +93,7 @@ public class PageImageView extends androidx.appcompat.widget.AppCompatImageView 
     public void setTranslateToRightEdge(boolean translate) {
         mTranslateRightEdge = translate;
     }
+
 
     private void scale() {
         Drawable drawable = getDrawable();
@@ -119,28 +119,29 @@ public class PageImageView extends androidx.appcompat.widget.AppCompatImageView 
 
             mMatrix.setScale(scale, scale);
             mMatrix.postTranslate((int) (dx + 0.5f), 0);
-        }
-        else if (mViewMode == Constants.PageViewMode.ASPECT_FIT) {
+        } else if (mViewMode == Constants.PageViewMode.ASPECT_FIT) {
             RectF mTempSrc = new RectF(0, 0, dwidth, dheight);
             RectF mTempDst = new RectF(0, 0, vwidth, vheight);
 
             mMatrix.setRectToRect(mTempSrc, mTempDst, Matrix.ScaleToFit.CENTER);
-        }
-        else if (mViewMode == Constants.PageViewMode.FIT_WIDTH) {
-            float widthScale = (float)getWidth()/drawable.getIntrinsicWidth();
+        } else if (mViewMode == Constants.PageViewMode.FIT_WIDTH) {
+            float widthScale = (float) getWidth() / drawable.getIntrinsicWidth();
             mMatrix.setScale(widthScale, widthScale);
+            mMatrix.postTranslate(0, 0);
+        } else if (mViewMode == Constants.PageViewMode.FIT_HEIGHT) {
+            float scale = (float) getHeight() / drawable.getIntrinsicHeight();
+            mMatrix.setScale(scale, scale);
             mMatrix.postTranslate(0, 0);
         }
 
         // calculate min/max scale
-        float heightRatio = (float)vheight / dheight;
+        float heightRatio = (float) vheight / dheight;
         float w = dwidth * heightRatio;
         if (w < vwidth) {
             mMinScale = vheight * 0.75f / dheight;
             mMaxScale = Math.max(dwidth, vwidth) * 10f / dwidth;
             mDblTapScale = Math.max(dwidth, vwidth) * 1.5f / dwidth;
-        }
-        else {
+        } else {
             mMinScale = vwidth * 0.75f / dwidth;
             mMaxScale = Math.max(dheight, vheight) * 10f / dheight;
             mDblTapScale = Math.max(dheight, vheight) * 1.5f / dheight;
@@ -177,8 +178,7 @@ public class PageImageView extends androidx.appcompat.widget.AppCompatImageView 
             if (scaleFactor > 1 && mMaxScale - scaleNew < 0) {
                 scaleFactor = mMaxScale / scale;
                 scalable = false;
-            }
-            else if (scaleFactor < 1 && mMinScale - scaleNew > 0) {
+            } else if (scaleFactor < 1 && mMinScale - scaleNew > 0) {
                 scaleFactor = mMinScale / scale;
                 scalable = false;
             }
@@ -278,7 +278,7 @@ public class PageImageView extends androidx.appcompat.widget.AppCompatImageView 
             float width = d.getIntrinsicWidth() * scale;
             float height = d.getIntrinsicHeight() * scale;
 
-            size.set((int)width, (int)height);
+            size.set((int) width, (int) height);
 
             return size;
         }
@@ -294,7 +294,7 @@ public class PageImageView extends androidx.appcompat.widget.AppCompatImageView 
         float transX = m[Matrix.MTRANS_X];
         float transY = m[Matrix.MTRANS_Y];
 
-        offset.set((int)transX, (int)transY);
+        offset.set((int) transX, (int) transY);
 
         return offset;
     }
@@ -350,6 +350,23 @@ public class PageImageView extends androidx.appcompat.widget.AppCompatImageView 
         return true;
     }
 
+    @Override
+    public boolean canScrollVertically(int direction) {
+        if (getDrawable() == null)
+            return false;
+
+        float imageHeight = computeCurrentImageSize().y;
+        float offsetY = computeCurrentOffset().y;
+
+        if (offsetY >= 0 && direction < 0) {
+            return false;
+        }
+        else if (Math.abs(offsetY) + getHeight() >= imageHeight && direction > 0) {
+            return false;
+        }
+        return true;
+    }
+
     private class ZoomAnimation implements Runnable {
         public final static int ZOOM_DURATION = 200;
         float mX;
@@ -372,7 +389,7 @@ public class PageImageView extends androidx.appcompat.widget.AppCompatImageView 
 
         @Override
         public void run() {
-            float t = (float)(System.currentTimeMillis() - mStartTime) / ZOOM_DURATION;
+            float t = (float) (System.currentTimeMillis() - mStartTime) / ZOOM_DURATION;
             float interpolateRatio = mInterpolator.getInterpolation(t);
             t = (t > 1f) ? 1f : t;
 
@@ -385,8 +402,7 @@ public class PageImageView extends androidx.appcompat.widget.AppCompatImageView 
 
             if (t < 1f) {
                 post(this);
-            }
-            else {
+            } else {
                 // set exact scale
                 mMatrix.getValues(m);
                 mMatrix.setScale(mScale, mScale);
@@ -395,4 +411,6 @@ public class PageImageView extends androidx.appcompat.widget.AppCompatImageView 
             }
         }
     }
+
+
 }

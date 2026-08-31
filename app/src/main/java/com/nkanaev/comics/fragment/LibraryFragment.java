@@ -46,6 +46,7 @@ import com.nkanaev.comics.managers.Utils;
 import com.nkanaev.comics.model.Comic;
 import com.nkanaev.comics.model.Storage;
 import com.nkanaev.comics.view.DirectorySelectDialog;
+import com.nkanaev.comics.view.GestureOverlayLayout;
 import com.nkanaev.comics.view.PreCachingGridLayoutManager;
 import com.squareup.picasso.Picasso;
 
@@ -286,6 +287,18 @@ public class LibraryFragment extends Fragment
         }
         menu.findItem(R.id.menuLibrarySetTheme).setIcon(icon);
         menu.findItem(item).setChecked(true);
+
+        // activate show gestures switch (in debug builds only)
+        GestureOverlayLayout g = getActivity().findViewById(R.id.gesture_layout);
+        if (g != null) {
+            MenuItem drawGesturesItem = menu.findItem(R.id.draw_gestures);
+            drawGesturesItem.setVisible(true);
+            // restore state
+            boolean onOff = MainApplication.getPreferences().
+                            getBoolean(Constants.SETTINGS_DEBUG_GESTURES, false);
+            drawGesturesItem.setChecked(onOff);
+            g.setGestureVisible(onOff);
+        }
     }
 
     private static final HashMap<Integer, List<Integer>> sortIds = new HashMap<>();
@@ -428,6 +441,19 @@ public class LibraryFragment extends Fragment
             }
             // show at location
             popupWindow.showAtLocation(getActivity().getWindow().getDecorView(), Gravity.TOP | Gravity.RIGHT, xOffset, yOffset);
+            return true;
+        }
+
+        if (item.getItemId() == R.id.draw_gestures) {
+            GestureOverlayLayout g = (GestureOverlayLayout)getActivity().findViewById(R.id.gesture_layout);
+            boolean onOff = !item.isChecked();
+            item.setChecked(onOff);
+            g.setGestureVisible(onOff);
+            // save to settings
+            SharedPreferences preferences = MainApplication.getPreferences();
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putBoolean(Constants.SETTINGS_DEBUG_GESTURES, onOff);
+            editor.apply();
             return true;
         }
 

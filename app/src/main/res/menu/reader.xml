@@ -8,29 +8,40 @@
           app:showAsAction="always"/>
     <item android:id="@+id/menu_reader_reading"
           android:title="@string/action_reading_mode"
-          android:icon="@drawable/ic_book_18"
+          android:icon="@drawable/ic_bookarrow_ltr_18"
           app:showAsAction="ifRoom">
         <menu>
             <group android:checkableBehavior="single">
                 <item android:id="@+id/reading_left_to_right"
+                      android:icon="@drawable/ic_bookarrow_ltr_18"
                       android:title="@string/action_reading_mode_left_to_right"/>
                 <item android:id="@+id/reading_right_to_left"
+                      android:icon="@drawable/ic_bookarrow_rtl_18"
                       android:title="@string/action_reading_mode_right_to_left"/>
+                <item android:id="@+id/reading_top_to_bottom"
+                      android:icon="@drawable/ic_bookarrow_ttb_18"
+                      android:title="@string/action_reading_mode_top_to_bottom"/>
             </group>
         </menu>
     </item>
-    <item android:id="@+id/menu_reader_aspect_ratio"
+    <item android:id="@+id/menu_reader_view_mode"
           android:title="@string/action_view_mode"
           android:icon="@drawable/ic_aspect_ratio_18"
           app:showAsAction="ifRoom">
         <menu>
             <group android:checkableBehavior="single">
                 <item android:id="@+id/view_mode_aspect_fill"
+                      android:icon="@drawable/ic_zoom_out_18"
                       android:title="@string/action_view_mode_aspect_fill"/>
                 <item android:id="@+id/view_mode_aspect_fit"
+                      android:icon="@drawable/ic_fit_page_aspect_18"
                       android:title="@string/action_view_mode_aspect_fit"/>
                 <item android:id="@+id/view_mode_fit_width"
+                      android:icon="@drawable/ic_fit_page_width_18"
                       android:title="@string/action_view_mode_fit_width"/>
+                <item android:id="@+id/view_mode_fit_height"
+                      android:icon="@drawable/ic_fit_page_height_18"
+                      android:title="@string/action_view_mode_fit_height"/>
             </group>
         </menu>
     </item>

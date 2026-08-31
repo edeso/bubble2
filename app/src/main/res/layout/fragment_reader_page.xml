@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:orientation="vertical"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
-              android:layout_height="match_parent">
-    <com.nkanaev.comics.view.PageImageView
-            android:id="@+id/pageImageView"
+              android:layout_height="match_parent"
+              android:background="@color/darkest">
+    <com.nkanaev.comics.view.InterceptTouchLayout
+            android:id="@+id/touchInterceptor"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:visibility="gone"/>
+            android:visibility="visible">
+        <com.nkanaev.comics.view.PageImageView
+                android:id="@+id/pageImageView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+    </com.nkanaev.comics.view.InterceptTouchLayout>
     <RelativeLayout
             android:layout_width="fill_parent"
             android:layout_height="fill_parent">
@@ -21,4 +26,4 @@
                 android:src="@drawable/broken"/>
         <include layout="@layout/progress_image"/>
     </RelativeLayout>
-</LinearLayout>
+</FrameLayout>
