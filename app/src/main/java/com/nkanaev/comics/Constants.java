@@ -18,6 +18,19 @@ public class Constants {
     public static final String SETTINGS_LIBRARY_BROWSER_SORT = "SETTINGS_LIBRARY_BROWSER_SORT";
     public static final String SETTINGS_LIBRARY_BROWSER_RECENTS = "SETTINGS_LIBRARY_BROWSER_RECENTS";
 
+    public static final String SETTINGS_LAST_SCREEN = "SETTINGS_LAST_SCREEN";
+    public static final String SETTINGS_LAST_BROWSE_PATH = "SETTINGS_LAST_BROWSE_PATH";
+    public static final String SETTINGS_LAST_COMIC_PATH = "SETTINGS_LAST_COMIC_PATH";
+    public static final String SETTINGS_LAST_COMIC_ID = "SETTINGS_LAST_COMIC_ID";
+    public static final String SETTINGS_LAST_BROWSE_SCROLL_POS = "SETTINGS_LAST_BROWSE_SCROLL_POS";
+    public static final String SETTINGS_LAST_BROWSE_SCROLL_OFFSET = "SETTINGS_LAST_BROWSE_SCROLL_OFFSET";
+    public static final String SETTINGS_LAST_FILTER_SEARCH = "SETTINGS_LAST_FILTER_SEARCH";
+
+    public static final int SCREEN_LIBRARY = 0;
+    public static final int SCREEN_LIBRARY_BROWSER = 1;
+    public static final int SCREEN_BROWSER = 2;
+    public static final int SCREEN_READER = 3;
+
     public static final int MESSAGE_MEDIA_UPDATE_FINISHED = 0;
     public static final int MESSAGE_MEDIA_UPDATED = 1;
 

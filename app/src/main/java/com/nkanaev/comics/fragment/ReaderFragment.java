@@ -517,8 +517,21 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
         if (mComic != null) {
             mComic.setCurrentPage(getCurrentPage());
         }
+        saveState();
         Utils.disablePendingTransition(getActivity());
         super.onPause();
+    }
+
+    private void saveState() {
+        SharedPreferences.Editor editor = MainApplication.getPreferences().edit();
+        editor.putInt(Constants.SETTINGS_LAST_SCREEN, Constants.SCREEN_READER);
+        if (mComic != null) {
+            editor.putString(Constants.SETTINGS_LAST_COMIC_PATH, "");
+            editor.putInt(Constants.SETTINGS_LAST_COMIC_ID, mComic.getId());
+        } else {
+            editor.putString(Constants.SETTINGS_LAST_COMIC_PATH, mFile.getAbsolutePath());
+        }
+        editor.apply();
     }
 
     @Override
@@ -563,6 +576,10 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
             return mViewPager.getCurrentItem() + 1;
         else
             return mPageCount - mViewPager.getCurrentItem();
+    }
+
+    public File getFile() {
+        return mFile;
     }
 
     @Override
