@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.*;
 import androidx.fragment.app.Fragment;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import com.nkanaev.comics.Constants;
 import com.nkanaev.comics.R;
 import com.nkanaev.comics.activity.MainActivity;
 import com.nkanaev.comics.activity.ReaderActivity;
@@ -41,6 +42,8 @@ public class BrowserFragment extends Fragment
 
         if (savedInstanceState != null) {
             mCurrentDir = (File) savedInstanceState.getSerializable(STATE_CURRENT_DIR);
+        } else if (getArguments() != null && getArguments().containsKey(Constants.SETTINGS_LAST_BROWSE_PATH)) {
+            mCurrentDir = (File) getArguments().getSerializable(Constants.SETTINGS_LAST_BROWSE_PATH);
         } else {
             mCurrentDir = Environment.getExternalStorageDirectory();
         }
@@ -89,6 +92,10 @@ public class BrowserFragment extends Fragment
         toolbar.removeView(breadcrumb);
         */
         super.onDestroyView();
+    }
+
+    public File getCurrentDir() {
+        return mCurrentDir;
     }
 
     private void setCurrentDirectory(File dir) {

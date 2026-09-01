@@ -1,7 +1,10 @@
 package com.nkanaev.comics.activity;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowInsets;
@@ -20,16 +23,17 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.navigation.NavigationView.OnNavigationItemSelectedListener;
+import com.nkanaev.comics.Constants;
+import com.nkanaev.comics.MainApplication;
 import com.nkanaev.comics.R;
-import com.nkanaev.comics.fragment.AboutFragment;
-import com.nkanaev.comics.fragment.BrowserFragment;
-import com.nkanaev.comics.fragment.LibraryFragment;
+import com.nkanaev.comics.fragment.*;
 import com.nkanaev.comics.managers.LocalCoverHandler;
 import com.nkanaev.comics.managers.Scanner;
 import com.nkanaev.comics.managers.Utils;
 import com.nkanaev.comics.view.NavBGImageView;
 import com.squareup.picasso.Picasso;
 
+import java.io.File;
 
 public class MainActivity extends AppCompatActivity
         implements FragmentManager.OnBackStackChangedListener {
@@ -130,8 +134,8 @@ public class MainActivity extends AppCompatActivity
             setFragment(new LibraryFragment());
             mCurrentNavItem = R.id.drawer_menu_library;
             navigationView.getMenu().findItem(mCurrentNavItem).setChecked(true);
-        }
-        else {
+            restoreLastNavigationState();
+        } else {
             onBackStackChanged();  // force-call method to ensure indicator is shown properly
             mCurrentNavItem = savedInstanceState.getInt(STATE_CURRENT_MENU_ITEM);
             navigationView.getMenu().findItem(mCurrentNavItem).setChecked(true);
@@ -267,5 +271,95 @@ public class MainActivity extends AppCompatActivity
                 mDrawerLayout.openDrawer(GravityCompat.START);
         }
         return super.onSupportNavigateUp();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        saveNavigationState();
+    }
+
+    private void saveNavigationState() {
+        Log.d("BrowserFragment", "saveNavigationState");
+        SharedPreferences.Editor editor = MainApplication.getPreferences().edit();
+        FragmentManager fm = getSupportFragmentManager();
+
+        Fragment currentFragment = fm.findFragmentById(R.id.content_frame);
+        if (currentFragment instanceof LibraryBrowserFragment) {
+            editor.putInt(Constants.SETTINGS_LAST_SCREEN, Constants.SCREEN_LIBRARY_BROWSER);
+            editor.putString(Constants.SETTINGS_LAST_BROWSE_PATH, ((LibraryBrowserFragment) currentFragment).getPath());
+        } else if (currentFragment instanceof BrowserFragment) {
+            editor.putInt(Constants.SETTINGS_LAST_SCREEN, Constants.SCREEN_BROWSER);
+            editor.putString(Constants.SETTINGS_LAST_BROWSE_PATH, ((BrowserFragment) currentFragment).getCurrentDir().getAbsolutePath());
+        } else {
+            editor.putInt(Constants.SETTINGS_LAST_SCREEN, Constants.SCREEN_LIBRARY);
+            editor.putString(Constants.SETTINGS_LAST_BROWSE_PATH, "");
+        }
+        editor.apply();
+    }
+
+    private void restoreLastNavigationState() {
+        SharedPreferences prefs = MainApplication.getPreferences();
+
+        int lastScreen = prefs.getInt(Constants.SETTINGS_LAST_SCREEN, Constants.SCREEN_LIBRARY);
+        String lastPath = prefs.getString(Constants.SETTINGS_LAST_BROWSE_PATH, "");
+
+        switch (lastScreen) {
+            case Constants.SCREEN_LIBRARY_BROWSER:
+                restoreLibraryState(lastPath);
+                break;
+            case Constants.SCREEN_BROWSER:
+                restoreBrowserState(lastPath);
+                break;
+            case Constants.SCREEN_READER:
+                restoreReaderState(prefs, lastPath);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void restoreLibraryState(String lastPath) {
+        if (!lastPath.isEmpty()) {
+            File dir = new File(lastPath);
+            if (dir.exists() && dir.isDirectory()) {
+                pushFragment(LibraryBrowserFragment.create(lastPath));
+            }
+        }
+    }
+
+    private void restoreBrowserState(String lastPath) {
+        if (!lastPath.isEmpty()) {
+            File browseDir = new File(lastPath);
+            if (browseDir.exists() && browseDir.isDirectory()) {
+                BrowserFragment fragment = new BrowserFragment();
+                Bundle args = new Bundle();
+                args.putSerializable(Constants.SETTINGS_LAST_BROWSE_PATH, browseDir);
+                fragment.setArguments(args);
+                setFragment(fragment);
+                mCurrentNavItem = R.id.drawer_menu_browser;
+                ((NavigationView) findViewById(R.id.navigation_view)).getMenu().findItem(mCurrentNavItem).setChecked(true);
+            }
+        }
+    }
+
+    private void restoreReaderState(SharedPreferences prefs, String lastPath) {
+        String comicPath = prefs.getString(Constants.SETTINGS_LAST_COMIC_PATH, "");
+        if (!comicPath.isEmpty()) {
+            File comicFile = new File(comicPath);
+            if (comicFile.exists()) {
+                restoreBrowserState(lastPath);
+                Intent intent = new Intent(this, ReaderActivity.class);
+                intent.putExtra(ReaderFragment.PARAM_HANDLER, comicFile);
+                intent.putExtra(ReaderFragment.PARAM_MODE, ReaderFragment.Mode.MODE_BROWSER);
+                startActivity(intent);
+            }
+        } else {
+            restoreLibraryState(lastPath);
+            Intent intent = new Intent(this, ReaderActivity.class);
+            intent.putExtra(ReaderFragment.PARAM_HANDLER, prefs.getInt(Constants.SETTINGS_LAST_COMIC_ID, -1));
+            intent.putExtra(ReaderFragment.PARAM_MODE, ReaderFragment.Mode.MODE_LIBRARY);
+            startActivity(intent);
+        }
     }
 }

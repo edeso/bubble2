@@ -169,9 +169,75 @@ public class LibraryBrowserFragment extends Fragment
         return view;
     }
 
+    public String getPath() {
+        return mPath;
+    }
+
+    private void saveState() {
+        SharedPreferences.Editor editor = MainApplication.getPreferences().edit();
+
+        if (mComicListView != null) {
+            RecyclerView.LayoutManager lm = mComicListView.getLayoutManager();
+            if (lm instanceof GridLayoutManager) {
+                GridLayoutManager glm = (GridLayoutManager) lm;
+                int firstVisible = glm.findFirstVisibleItemPosition();
+                View firstView = glm.findViewByPosition(firstVisible);
+                int offset = (firstView != null) ? firstView.getTop() : 0;
+                editor.putInt(Constants.SETTINGS_LAST_BROWSE_SCROLL_POS, firstVisible);
+                editor.putInt(Constants.SETTINGS_LAST_BROWSE_SCROLL_OFFSET, offset);
+            }
+        }
+
+        editor.putString(Constants.SETTINGS_LAST_FILTER_SEARCH, mFilterSearch);
+        Log.d("LibraryBrowserFragment", "saveState: " + mFilterSearch);
+        editor.apply();
+    }
+
+    private void restoreState() {
+        SharedPreferences prefs = MainApplication.getPreferences();
+        String savedPath = prefs.getString(Constants.SETTINGS_LAST_BROWSE_PATH, "");
+        if (!savedPath.equals(mPath)) {
+            return;
+        }
+
+        final int scrollPos = prefs.getInt(Constants.SETTINGS_LAST_BROWSE_SCROLL_POS, 0);
+        final int scrollOffset = prefs.getInt(Constants.SETTINGS_LAST_BROWSE_SCROLL_OFFSET, 0);
+        if (scrollPos > 0 && mComicListView != null) {
+            mComicListView.post(new Runnable() {
+                @Override
+                public void run() {
+                    GridLayoutManager glm = ((GridLayoutManager) mComicListView.getLayoutManager());
+                    glm.scrollToPositionWithOffset(scrollPos, scrollOffset);
+                }
+            });
+        }
+    }
+
+    private void restoreSearchState(MenuItem searchItem) {
+        SharedPreferences prefs = MainApplication.getPreferences();
+        mFilterSearch = prefs.getString(Constants.SETTINGS_LAST_FILTER_SEARCH, "");
+
+        Log.d("LibraryBrowserFragment", "restoreState: " + mFilterSearch);
+        if (mSearchView != null && !mFilterSearch.isEmpty()) {
+            mSearchView.setIconified(false);
+            searchItem.expandActionView();
+            mSearchView.requestFocus();
+            mSearchView.setQuery(mFilterSearch, false);
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        SharedPreferences.Editor editor = MainApplication.getPreferences().edit();
+        editor.remove(Constants.SETTINGS_LAST_FILTER_SEARCH);
+        editor.apply();
+    }
+
     @Override
     public void onResume() {
         getComics();
+        restoreState();
         Scanner.getInstance().addUpdateHandler(mUpdateHandler);
         setLoading(Scanner.getInstance().isRunning());
         super.onResume();
@@ -179,6 +245,7 @@ public class LibraryBrowserFragment extends Fragment
 
     @Override
     public void onPause() {
+        saveState();
         Scanner.getInstance().removeUpdateHandler(mUpdateHandler);
         setLoading(false);
         super.onPause();
@@ -206,6 +273,7 @@ public class LibraryBrowserFragment extends Fragment
         MenuItem searchItem = menu.findItem(R.id.search);
         mSearchView = (SearchView) MenuItemCompat.getActionView(searchItem);
         mSearchView.setOnQueryTextListener(this);
+        restoreSearchState(searchItem);
 
         MenuItem filterItem = menu.findItem(R.id.menu_browser_filter);
         mFilterMenu = filterItem.getSubMenu();
@@ -473,6 +541,7 @@ public class LibraryBrowserFragment extends Fragment
         sortList(mAllItems);
         mRecentItems = findRecents(mAllItems);
         limitRecents(calculateNumColumns());
+        saveState();
         refreshAdapter();
         return true;
     }
