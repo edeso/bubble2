@@ -7,7 +7,7 @@ plugins {
 def getVersionCode = { ->
     def stream = providers.exec {
         commandLine 'git', 'tag', '--list'
-        ignoreExitValue true
+        ignoreExitValue = true
     }.standardOutput
 
     def tagList = stream.asText.get()
@@ -21,7 +21,7 @@ def getVersionCode = { ->
 def getVersionName = { ->
     def stream = providers.exec {
         commandLine "git", "describe", "--tags", "--long"
-        ignoreExitValue true
+        ignoreExitValue = true
     }.standardOutput
 
     def latestTag = stream.asText.get().trim()
