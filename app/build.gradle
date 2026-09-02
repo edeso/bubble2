@@ -7,8 +7,13 @@ plugins {
 def getVersionCode = { ->
     def stream = providers.exec {
         commandLine 'git', 'tag', '--list'
+        ignoreExitValue true
     }.standardOutput
-    return stream.asText.get().split("\n").size() as Integer
+
+    def tagList = stream.asText.get()
+    if (tagList.isEmpty())
+        return 1
+    return tagList.split("\n").size() as Integer
 }
 
 // use git describe to generate a version name looking like
@@ -16,8 +21,13 @@ def getVersionCode = { ->
 def getVersionName = { ->
     def stream = providers.exec {
         commandLine "git", "describe", "--tags", "--long"
+        ignoreExitValue true
     }.standardOutput
-    return stream.asText.get().trim() //.replaceAll("[^\\x00-\\x7F]", "")
+
+    def latestTag = stream.asText.get().trim()
+    if (latestTag.isEmpty())
+        latestTag = "No Tags"
+    return latestTag //.replaceAll("[^\\x00-\\x7F]", "")
 }
 
 repositories {

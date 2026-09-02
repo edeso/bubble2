@@ -49,4 +49,9 @@
           android:title="@string/action_view_export"
           android:icon="@drawable/ic_download_18"
           app:showAsAction="ifRoom"/>
+    <item android:id="@+id/keep_screen_on"
+          android:title="@string/action_keep_screen_on"
+          android:icon="@drawable/ic_timer_18"
+          android:checkable="true"
+          app:showAsAction="ifRoom"/>
 </menu>

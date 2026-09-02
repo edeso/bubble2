@@ -9,10 +9,13 @@ public class Constants {
     public static final String SETTINGS_NAME = "SETTINGS_COMICS";
     public static final String SETTINGS_LIBRARY_DIR = "SETTINGS_LIBRARY_DIR";
     public static final String SETTINGS_THEME = "SETTINGS_THEME";
+
     public static final String SETTINGS_DEBUG_GESTURES = "SETTINGS_DEBUG_GESTURES";
     public static final String SETTINGS_PAGE_VIEW_MODE = "SETTINGS_PAGE_VIEW_MODE";
     public static final String SETTINGS_READING_LEFT_TO_RIGHT = "SETTINGS_READING_LEFT_TO_RIGHT";
     public static final String SETTINGS_READING_VERTICAL = "SETTINGS_READING_VERTICAL";
+    public static final String SETTINGS_KEEP_SCREEN_ON = "SETTINGS_KEEP_SCREEN_ON";
+
     public static final String SETTINGS_LIBRARY_SORT = "SETTINGS_LIBRARY_SORT";
     public static final String SETTINGS_LIBRARY_BROWSER_SORT = "SETTINGS_LIBRARY_BROWSER_SORT";
     public static final String SETTINGS_LIBRARY_BROWSER_RECENTS = "SETTINGS_LIBRARY_BROWSER_RECENTS";

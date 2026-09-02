@@ -103,6 +103,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
     private Constants.PageViewMode mPageViewMode;
     private boolean mIsLeftToRight;
     private boolean mIsVertical;
+    private boolean mKeepScreenOn;
 
     private Parser mParser;
     private Exception mParserException = null;
@@ -265,6 +266,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
         mPageViewMode = Constants.PageViewMode.values()[viewModeInt];
         mIsLeftToRight = preferences.getBoolean(Constants.SETTINGS_READING_LEFT_TO_RIGHT, true);
         mIsVertical = preferences.getBoolean(Constants.SETTINGS_READING_VERTICAL, false);
+        mKeepScreenOn = preferences.getBoolean(Constants.SETTINGS_KEEP_SCREEN_ON, false);
 
         setHasOptionsMenu(true);
     }
@@ -389,6 +391,10 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
         };
         mPageInfoButton.setOnClickListener(ocl);
         mPageInfoTextView.setOnClickListener(ocl);
+
+        // setup view pager, adapter assigned after parsing in bg thread below
+        // re-apply keep screen on setting
+        setKeepScreenOn(mKeepScreenOn);
 
         // setup view pager, adapter assigned after parsing in bg thread below
         mViewPager = view.findViewById(R.id.viewPager);
@@ -578,6 +584,11 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
             viewModeItem.setIcon(R.drawable.ic_fit_page_width_18);
         else if (mPageViewMode == Constants.PageViewMode.FIT_HEIGHT)
             viewModeItem.setIcon(R.drawable.ic_fit_page_height_18);
+
+        // keep screen on
+        menu.findItem(R.id.keep_screen_on).setChecked(mKeepScreenOn);
+        menu.findItem(R.id.keep_screen_on).setIcon(!mKeepScreenOn ? R.drawable.ic_timer_18 : R.drawable.ic_timer_off_18);
+
     }
 
     @Override
@@ -711,6 +722,20 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
 
         if (item.getItemId() == R.id.menu_reader_export) {
             exportCurrentPage();
+            return true;
+        }
+
+        if (item.getItemId() ==  R.id.keep_screen_on) {
+            // switch state
+            mKeepScreenOn = !mKeepScreenOn;
+            // apply
+            setKeepScreenOn(mKeepScreenOn);
+            // switch ui
+            item.setChecked(mKeepScreenOn);
+            item.setIcon(!mKeepScreenOn ? R.drawable.ic_timer_18 : R.drawable.ic_timer_off_18);
+            // memorize
+            editor.putBoolean(Constants.SETTINGS_KEEP_SCREEN_ON, mKeepScreenOn);
+            editor.apply();
             return true;
         }
 
@@ -1297,6 +1322,15 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
             }
         });
         alertDialog.show();
+    }
+
+    private void setKeepScreenOn(boolean keepOn) {
+        Window win = getActivity().getWindow();
+        if (keepOn) {
+            win.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        } else {
+            win.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
     }
 
     private void updateSeekBar() {
