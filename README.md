@@ -4,7 +4,7 @@ Android comic book reader, image archive viewer. Simple yet comfy.<br/>
 Open PDF, RAR, ZIP, 7Z, TAR files. Display BMP, JPG, GIF, PNG, WebP and JP2/J2K images.<br/>
 Based on Bubble v1.6.0 by Nazar Kanaev. Upgraded dependencies, enhancements as felt needed. 
 
-**Feel free to open an [issue](https://github.com/edeso/bubble2/issues) or even better contribute with a pull request.**
+**Feel free to open an [issue](https://github.com/edeso/bubble2/issues) or even better contribute with a [pull request](https://github.com/edeso/bubble2/pulls).**
 
 ## Download
 
