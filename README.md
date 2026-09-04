@@ -22,10 +22,10 @@ or
 * Open ZIP/CBZ, RAR/CBR, 7Z/CB7, PDF and FOLDER comic books
 * Open TAR/CBT files with Brotli/Bzip2/Gzip/LZMA/XZ/Zstd compression
 * Display BMP, JPG, GIF, PNG, WebP and JP2/J2K(as used by archive.org) image files in archives/from folders
-* Advanced zoom and scaling modes
-* Comics/Manga reading mode
+* Comics/Manga/Webtoon reading modes (ltr/rtl/top to bottom)
 * Library with automatic bookmarks
 * Export page as JPG to Downloads folder
+* Screen timeout disable switch
 * Simple file browser
 * Best served on Android 8.0(Oreo) or later
 * Still runs on Android 5.0(Lollipop)+ (no PDF, Brotli, XZ, Zstd support though)
