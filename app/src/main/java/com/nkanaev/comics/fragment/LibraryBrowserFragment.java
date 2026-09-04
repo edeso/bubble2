@@ -920,10 +920,12 @@ public class LibraryBrowserFragment extends Fragment
             if (type == ITEM_VIEW_TYPE_COMIC) {
                 Comic comic = getComicAtPosition(position);
                 // ids need to be unique, as recents holds the some of the
-                // same comics as the list we magicalize unique ones
+                // same comics as the list we magically calculate  unique ids
+                // ( recentid = negative comicid minus 10 to protect header values )
+                // TODO: add hashmap in case we add a third section e.g. pinned items
                 if (hasRecent() && position < mRecentItems.size() + 1)
-                        return comic.getId();
-                return comic.getId()*100;
+                        return - comic.getId() - 10;
+                return comic.getId();
             }
             return type;
         }
