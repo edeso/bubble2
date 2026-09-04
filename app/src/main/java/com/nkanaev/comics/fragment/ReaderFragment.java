@@ -318,9 +318,13 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
                     }
                 });
 
-        boolean onOff = MainApplication.getPreferences().
-                getBoolean(Constants.SETTINGS_DEBUG_GESTURES, false);
-        ((GestureOverlayLayout)getActivity().findViewById(R.id.gesture_layout)).setGestureVisible(onOff);
+        // gestureoverlay is only available in debug builds
+        GestureOverlayLayout g = getActivity().findViewById(R.id.gesture_layout);
+        if (g != null) {
+            boolean onOff = MainApplication.getPreferences().
+                    getBoolean(Constants.SETTINGS_DEBUG_GESTURES, false);
+            g.setGestureVisible(onOff);
+        }
 
         mPageNavLayout = getActivity().findViewById(R.id.pageNavLayout);
 
