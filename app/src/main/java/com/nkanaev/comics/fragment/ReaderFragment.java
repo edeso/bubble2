@@ -709,13 +709,11 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
         if (item.getItemId() == R.id.rotate) {
             // add 90 degree to current page rotation
             int pos = getCurrentPage() - 1;
-            Integer degrees = mRotations.get(pos);
-            if (degrees == null)
-                degrees = 0;
+            Integer degrees = mRotations.getOrDefault(pos, 0);
             degrees += 90;
             mRotations.put(pos, degrees);
-            // apply rotation during (re)load
-            mViewPager.getAdapter().notifyDataSetChanged();
+            // apply rotation by (re)loading page
+            mViewPager.getAdapter().notifyItemChanged(pos);
             //updatePageViews(mViewPager,pos,true);
             // work in progress,
             // rotating imageview does not reset boundings unfortunately, dunno howto fix for now
