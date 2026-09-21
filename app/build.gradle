@@ -137,6 +137,7 @@ androidComponents {
 
 dependencies {
     // appcompat v1.8+ API23
+    //noinspection GradleDependency,NewerVersionAvailable
     implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation 'androidx.viewpager2:viewpager2:1.1.0'
@@ -144,6 +145,7 @@ dependencies {
     // recyclerview 1.4.+ API21
     implementation 'androidx.recyclerview:recyclerview:1.4.0'
     // fragment v1.9+ API23
+    //noinspection GradleDependency,NewerVersionAvailable
     implementation 'androidx.fragment:fragment:1.8.9'
     // activity v1.12+ API23
     //noinspection GradleDependency,NewerVersionAvailable
@@ -164,14 +166,14 @@ dependencies {
     implementation 'io.github.michaldvorak-gemalto:jp2-android:1.1.0'
 
     implementation 'org.apache.commons:commons-compress:1.28.0'
-    implementation 'com.github.junrar:junrar:8.1.0'
+    implementation 'com.github.junrar:junrar:8.1.1'
     implementation 'org.tukaani:xz:1.12'
     // 7-Zip-JBinding-4Android 16.02-2.03+ API21
     //implementation 'com.github.omicronapps:7-Zip-JBinding-4Android:Release-16.02-2.02'
     //implementation 'com.github.lings03:7-Zip-JBinding-4Android:2025.06.13'
     //implementation 'com.sorrowblue.sevenzipjbinding:7-Zip-JBinding-4Android:16.02-2.03'
     implementation 'com.github.edeso:7-Zip-JBinding-4Android:ndk-upgradev2-SNAPSHOT'
-    implementation 'com.github.luben:zstd-jni:1.5.7-16@aar'
+    implementation 'com.github.luben:zstd-jni:1.5.7-18@aar'
     implementation 'org.brotli:dec:0.1.2'
 
     // workaround fix 'Duplicate class kotlin.collections.jdk8.CollectionsJDK8Kt found in modules ...'
