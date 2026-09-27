@@ -11,13 +11,12 @@ import android.graphics.BitmapFactory;
 import android.graphics.Insets;
 import android.opengl.*;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
-import android.view.View;
-import android.view.WindowInsets;
-import android.view.WindowManager;
-import android.view.WindowMetrics;
+import android.view.*;
 import android.widget.Toast;
 import androidx.annotation.AttrRes;
 import androidx.annotation.ColorInt;
@@ -796,6 +795,36 @@ public final class Utils {
                 return true;
         }
         return false;
+    }
+
+    public static void addExtraLongOnClickAction(final View view, final Runnable longPressRunnable){
+        final Handler handler = new Handler(Looper.getMainLooper());
+        final long requiredLongPressTime = ViewConfiguration.getLongPressTimeout() * 3l;
+
+        final View.OnTouchListener toolbarItemLongClicked = new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                // run existing touch handling
+                view.onTouchEvent(event);
+
+                // add extra long touch action
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        // Start the timer when the user touches the view
+                        handler.postDelayed(longPressRunnable, requiredLongPressTime);
+                        return true;
+
+                    case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_CANCEL:
+                        // Cancel the timer if the user lifts their finger too early
+                        handler.removeCallbacks(longPressRunnable);
+                        return true;
+                }
+                return false;
+            }
+        };
+
+        view.setOnTouchListener(toolbarItemLongClicked);
     }
 
     public static boolean isIceCreamSandwitchOrLater() {

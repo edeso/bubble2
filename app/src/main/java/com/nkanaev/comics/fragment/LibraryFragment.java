@@ -220,37 +220,27 @@ public class LibraryFragment extends Fragment
         mRefreshItem = menu.findItem(R.id.menuLibraryRefresh);
         // show=always is precondition to have an ActionView
         mRefreshItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+
+        // attach extralongclicklistener after itemview is created
         final int mRefreshItemId = mRefreshItem.getItemId();
-        View mRefreshItemActionView = mRefreshItem.getActionView();
-
-        final View.OnLongClickListener toolbarItemLongClicked = new View.OnLongClickListener() {
-            int counter;
-
-            @Override
-            public boolean onLongClick(View view) {
-                onRefresh(true);
-                // return false so tooltip is shown
-                return false;
-            }
-        };
-
-        // attach longclicklistener after itemview is created
         final androidx.appcompat.widget.Toolbar toolbar = ((MainActivity) getActivity()).getToolbar();
-        if (mRefreshItemActionView == null)
-            toolbar.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-                @Override
-                public void onLayoutChange(View view, int i, int i1, int i2, int i3, int i4, int i5, int i6, int i7) {
-                    if (view.getId() == toolbar.getId()) {
-                        View itemView = view.findViewById(mRefreshItemId);
-                        if (itemView != null) {
-                            itemView.setOnLongClickListener(toolbarItemLongClicked);
-                            view.removeOnLayoutChangeListener(this);
-                        }
+        toolbar.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View view, int i, int i1, int i2, int i3, int i4, int i5, int i6, int i7) {
+                if (view.getId() == toolbar.getId()) {
+                    View itemView = view.findViewById(mRefreshItemId);
+                    if (itemView != null) {
+                        Utils.addExtraLongOnClickAction(itemView, new Runnable() {
+                            @Override
+                            public void run() {
+                                onRefresh(true);
+                            }
+                        });
+                        view.removeOnLayoutChangeListener(this);
                     }
                 }
-            });
-        else
-            mRefreshItemActionView.setOnLongClickListener(toolbarItemLongClicked);
+            }
+        });
 
         // switch refresh icon
         setLoading(Scanner.getInstance().isRunning());

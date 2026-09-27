@@ -58,9 +58,10 @@
 
     <string name="browser_search_hint">Por favor, insira um termo de pesquisa</string>
 
-    <string name="reload">Atualizar biblioteca</string>
-    <string name="reload_msg_fast">Atualização rápida da biblioteca</string>
-    <string name="reload_msg_slow">Recarregar todos os arquivos da biblioteca</string>
+    <string name="reload">Atualizar biblioteca
+    Toque longo: Recarregar todos os arquivos</string>
+    <string name="reload_msg_fast">Atualização rápida</string>
+    <string name="reload_msg_slow">Recarregar todos os arquivos</string>
 
     <string name="theme">Tema</string>
     <string name="theme_auto">Automático</string>

@@ -57,7 +57,8 @@
     <string name="search">Rechercher</string>
     <string name="browser_search_hint">Saisissez un terme de recherche</string>
 
-    <string name="reload">Mettre à jour la bibliothèque</string>
+    <string name="reload">Mettre à jour la bibliothèque
+    Appui long: Recharger tous les fichiers</string>
     <string name="reload_msg_fast">Mise à jour rapide</string>
     <string name="reload_msg_slow">Recharger tous les fichiers</string>
 

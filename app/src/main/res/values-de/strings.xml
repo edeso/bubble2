@@ -36,7 +36,8 @@
     <string name="search">Suchen</string>
     <string name="browser_search_hint">Suchbegriff eingeben</string>
 
-    <string name="reload">Bibliothek aktualisieren</string>
+    <string name="reload">Bibliothek aktualisieren.
+    Lange drücken: Erzwingt Überprüfung aller Dateien.</string>
     <string name="reload_msg_fast">Neue Comics suchen</string>
     <string name="reload_msg_slow">Alle Comics neu laden</string>
 
