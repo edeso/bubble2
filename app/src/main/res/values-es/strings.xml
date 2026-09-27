@@ -38,8 +38,6 @@
 
     <string name="browser_search_hint">Por favor introduzca un término de búsqueda</string>
 
-    <string name="reload">Recargar</string>
-
     <string name="alert_action_positive">Si</string>
     <string name="alert_action_negative">No</string>
     <string name="alert_action_neutral">Ok</string>
