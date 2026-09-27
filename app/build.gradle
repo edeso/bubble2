@@ -52,7 +52,7 @@ android {
         }
         //version = preview("CinnamonBun")
     }
-    //buildToolsVersion '28.0.3'
+    buildToolsVersion = "37.0.0"
 
     defaultConfig {
         applicationId = "com.github.edeso.bubble2"
@@ -163,7 +163,8 @@ dependencies {
     //implementation 'com.gemalto.jp2:jp2-android:1.0.3'
     //implementation files('lib/jp2-android-1.0.3.aar')
     //implementation 'dev.keiji.jp2:jp2-android:1.0.5'
-    implementation 'io.github.michaldvorak-gemalto:jp2-android:1.1.0'
+    //implementation 'io.github.michaldvorak-gemalto:jp2-android:1.1.0'
+    implementation 'com.github.edeso:JP2ForAndroid:upgrade-ndk-SNAPSHOT'
 
     implementation 'org.apache.commons:commons-compress:1.28.0'
     implementation 'com.github.junrar:junrar:8.1.1'
