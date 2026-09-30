@@ -43,8 +43,8 @@ repositories {
 }
 
 android {
-    //compileSdk = 36
-    compileSdk {
+    compileSdk = 37
+    /*compileSdk {
         version = release(37) {
             // this block and its properties are optional
             minorApiLevel = 2
@@ -52,7 +52,8 @@ android {
         }
         //version = preview("CinnamonBun")
     }
-    buildToolsVersion = "37.0.0"
+    */
+    //buildToolsVersion = "37.0.0"
 
     defaultConfig {
         applicationId = "com.github.edeso.bubble2"
@@ -174,7 +175,7 @@ dependencies {
     //implementation 'com.github.lings03:7-Zip-JBinding-4Android:2025.06.13'
     //implementation 'com.sorrowblue.sevenzipjbinding:7-Zip-JBinding-4Android:16.02-2.03'
     implementation 'com.github.edeso:7-Zip-JBinding-4Android:ndk-upgradev2-SNAPSHOT'
-    implementation 'com.github.luben:zstd-jni:1.5.7-18@aar'
+    implementation 'com.github.luben:zstd-jni:1.5.7-20@aar'
     implementation 'org.brotli:dec:0.1.2'
 
     // workaround fix 'Duplicate class kotlin.collections.jdk8.CollectionsJDK8Kt found in modules ...'
