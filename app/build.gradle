@@ -168,14 +168,14 @@ dependencies {
     implementation 'com.github.edeso:JP2ForAndroid:upgrade-ndk-SNAPSHOT'
 
     implementation 'org.apache.commons:commons-compress:1.28.0'
-    implementation 'com.github.junrar:junrar:8.1.1'
+    implementation 'com.github.junrar:junrar:8.1.2'
     implementation 'org.tukaani:xz:1.12'
     // 7-Zip-JBinding-4Android 16.02-2.03+ API21
     //implementation 'com.github.omicronapps:7-Zip-JBinding-4Android:Release-16.02-2.02'
     //implementation 'com.github.lings03:7-Zip-JBinding-4Android:2025.06.13'
     //implementation 'com.sorrowblue.sevenzipjbinding:7-Zip-JBinding-4Android:16.02-2.03'
     implementation 'com.github.edeso:7-Zip-JBinding-4Android:ndk-upgradev2-SNAPSHOT'
-    implementation 'com.github.luben:zstd-jni:1.5.7-20@aar'
+    implementation 'com.github.luben:zstd-jni:1.5.7-25@aar'
     implementation 'org.brotli:dec:0.1.2'
 
     // workaround fix 'Duplicate class kotlin.collections.jdk8.CollectionsJDK8Kt found in modules ...'
