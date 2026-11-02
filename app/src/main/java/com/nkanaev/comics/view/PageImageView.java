@@ -168,6 +168,9 @@ public class PageImageView extends androidx.appcompat.widget.AppCompatImageView 
     private class PrivateScaleDetector extends ScaleGestureDetector.SimpleOnScaleGestureListener {
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
+            // zoom/scaling disable page flipping always
+            getParent().requestDisallowInterceptTouchEvent(true);
+
             mMatrix.getValues(m);
 
             float scale = m[Matrix.MSCALE_X];

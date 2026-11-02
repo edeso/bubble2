@@ -62,6 +62,8 @@ public class InterceptTouchLayout extends FrameLayout {
 
     private float initialX = 0f;
     private float initialY = 0f;
+    private boolean initialScrollabilityDown = true;
+    private boolean initialScrollabilityUp = true;
 
     private void handleInterceptTouchEvent(MotionEvent e) {
         ViewPager2 vp = getParentViewpager();
@@ -73,15 +75,32 @@ public class InterceptTouchLayout extends FrameLayout {
         // default is we handle events
         getParent().requestDisallowInterceptTouchEvent(true);
 
+        boolean isVpHorizontal = (vp.getOrientation() == ViewPager2.ORIENTATION_HORIZONTAL);
+
         if (e.getAction() == MotionEvent.ACTION_DOWN) {
             initialX = e.getX();
             initialY = e.getY();
+            initialScrollabilityDown = (isVpHorizontal && child.canScrollHorizontally(-1)) ||
+                    (!isVpHorizontal && child.canScrollVertically(-1));
+            initialScrollabilityUp = (isVpHorizontal && child.canScrollHorizontally(+1)) ||
+                    (!isVpHorizontal && child.canScrollVertically(+1));
+            return;
         }
 
         if (e.getAction() == MotionEvent.ACTION_MOVE) {
             int dx = Math.round(initialX - e.getX());
             int dy = Math.round(initialY - e.getY());
-            boolean isVpHorizontal = (vp.getOrientation() == ViewPager2.ORIENTATION_HORIZONTAL);
+
+            // check if first move happens on border in the right direction
+            // prevent page flipping while page scaling/dragging
+            boolean scrollDown = (isVpHorizontal && dx < 0) || (!isVpHorizontal && dy < 0);
+            boolean scrollUp = (isVpHorizontal && dx > 0) || (!isVpHorizontal && dy > 0);
+            if ((scrollDown && initialScrollabilityDown) || (scrollUp && initialScrollabilityUp)){
+                // ensure initial scrolls will never turn to flips
+                initialScrollabilityDown = true;
+                initialScrollabilityUp = true;
+                return;
+            }
 
             // we can scroll in direction requested
             if ((isVpHorizontal && child.canScrollHorizontally(dx)) ||
