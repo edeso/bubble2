@@ -190,7 +190,6 @@ public class LibraryFragment extends Fragment
         mFolderListView.addItemDecoration(new GridSpacingItemDecoration(numColumns, spacing));
 
         // some performance optimizations
-        //noinspection InvalidSetHasFixedSize
         mFolderListView.setHasFixedSize(true);
         mFolderListView.setItemViewCacheSize(Math.max(4 * numColumns,40));
         //mFolderListView.getRecycledViewPool().setMaxRecycledViews();
