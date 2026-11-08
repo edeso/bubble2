@@ -377,7 +377,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
                 //mPicasso.resumeTag(ReaderFragment.this.getActivity());
             }
         });
-        updateSeekBar();
+        //updateSeekBar();
 
         mPageNavTextView = (TextView) mPageNavLayout.findViewById(R.id.pageNavTextView);
         mPageNavTextView.setText(""); // strip dummy text
@@ -607,9 +607,6 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
 
     @Override
     public void onPause() {
-        if (mComic != null) {
-            mComic.setCurrentPage(getCurrentPage());
-        }
         Utils.disablePendingTransition(getActivity());
         super.onPause();
     }
@@ -698,7 +695,7 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
             mViewPager.setOrientation(orientation);
 
             // update slider (ltr vs rtl)
-            setCurrentPage(page, false);
+            setCurrentPage(page, false, true);
 
             // update menu icon
             getActivity().invalidateOptionsMenu();
@@ -759,13 +756,23 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
     */
 
     private void setCurrentPage(int page) {
-        setCurrentPage(page, true);
+        setCurrentPage(page, true, false);
+    }
+
+    private void setCurrentPage(int page, boolean animated) {
+        setCurrentPage(page, animated, false);
     }
 
     int mPrevItem = Integer.MIN_VALUE;
 
-    private void setCurrentPage(int page, boolean animated) {
+    private void setCurrentPage(int page, boolean animated, boolean directionSwitched) {
         int newItem = page - 1;
+
+        if (!directionSwitched && mPrevItem == newItem)
+            return;
+
+        if (directionSwitched)
+            mViewPager.getAdapter().notifyDataSetChanged();
 
         if (mIsLeftToRight) {
             mViewPager.setCurrentItem(newItem, animated);
@@ -775,17 +782,19 @@ public class ReaderFragment extends Fragment implements View.OnTouchListener {
             mPageSeekBar.setProgress(mPageCount - page);
         }
 
-        if (mPrevItem == newItem)
-            return;
-        else
-            mPrevItem = newItem;
-
         String navText = new StringBuilder()
                 .append(page).append("/").append(mPageCount)
                 .toString();
         mPageNavTextView.setText(navText);
 
         updatePageImageInfo();
+
+        // bookmark page as current
+        if (mComic != null) {
+            mComic.setCurrentPage(getCurrentPage());
+        }
+
+        mPrevItem = newItem;
     }
 
     private void updatePageImageInfo() {
